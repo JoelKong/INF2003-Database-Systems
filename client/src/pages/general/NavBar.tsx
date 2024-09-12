@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 export default function NavBar(): JSX.Element {
   return (
     <nav className="bg-white shadow-lg">
-      <div className="container mx-auto px-4">
+      <div className="mx-auto px-4">
         <div className="flex justify-between items-center h-16">
           <Link className="flex-shrink-0 h-28 w-28" to={"/"}>
             <img src={"/doglogo.png"} alt="Company Logo" />
