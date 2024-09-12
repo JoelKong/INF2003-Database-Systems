@@ -3,13 +3,18 @@ import Home from "./pages/home/Home";
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        {/* <Route path="/path2" element={<component2 />} />
-        <Route exact path="/path3" element={<component3 />} /> */}
-      </Routes>
-    </Router>
+    <>
+      <div className="fixed h-screen w-screen bg-home-bg bg-contain bg-center z-10"></div>
+      <main className="relative z-20">
+        <Router>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            {/* <Route path="/path2" element={<component2 />} />
+          <Route exact path="/path3" element={<component3 />} /> */}
+          </Routes>
+        </Router>
+      </main>
+    </>
   );
 }
 
