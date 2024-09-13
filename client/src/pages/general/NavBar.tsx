@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 
 export default function NavBar(): JSX.Element {
   return (
-    <nav className="bg-white shadow-lg">
+    <nav className="fixed w-full bg-white shadow-lg">
       <div className="mx-auto px-4">
         <div className="flex justify-between items-center h-16">
           <Link className="flex-shrink-0 h-28 w-28" to={"/"}>
@@ -13,14 +13,11 @@ export default function NavBar(): JSX.Element {
             <Link to={"/"} className="text-gray-700 hover:text-blue-500">
               Home
             </Link>
-            <Link to={"/"} className="text-gray-700 hover:text-blue-500">
-              About
-            </Link>
-            <Link to={"/"} className="text-gray-700 hover:text-blue-500">
-              Services
-            </Link>
-            <Link to={"/"} className="text-gray-700 hover:text-blue-500">
-              Contact
+            <Link
+              to={"/listofpets"}
+              className="text-gray-700 hover:text-blue-500"
+            >
+              List of Pets
             </Link>
           </div>
 
