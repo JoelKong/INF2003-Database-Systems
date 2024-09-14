@@ -1,6 +1,10 @@
-import { Link } from "react-router-dom";
+/** @format */
+
+import { Link, useNavigate } from "react-router-dom";
 
 export default function NavBar(): JSX.Element {
+  const navigate = useNavigate();
+
   return (
     <nav className="fixed w-full bg-white shadow-lg">
       <div className="mx-auto px-4">
@@ -22,7 +26,12 @@ export default function NavBar(): JSX.Element {
           </div>
 
           <div>
-            <button className="bg-blue-500 text-white px-4 py-2 rounded-lg transition ease-in-out hover:scale-110 hover:bg-indigo-500 duration-300">
+            <button
+              className="bg-blue-500 text-white px-4 py-2 rounded-lg transition ease-in-out hover:scale-110 hover:bg-indigo-500 duration-300"
+              onClick={() => {
+                navigate("/login");
+              }}
+            >
               Login
             </button>
           </div>
