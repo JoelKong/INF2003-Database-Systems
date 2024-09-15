@@ -140,8 +140,8 @@ def get_all_pets():
         cursor = connection.cursor(dictionary=True)
         query = """
         SELECT *
-        FROM Pet_Info
-        JOIN Pet_Condition ON Pet_Info.pet_condition_id = Pet_Condition.pet_condition_id
+        FROM pets.Pet_Info
+        JOIN pets.Pet_Condition ON pets.Pet_Info.pet_condition_id = pets.Pet_Condition.pet_condition_id
         """
         cursor.execute(query)
         pets = cursor.fetchall()
@@ -175,8 +175,8 @@ def filter_pets():
 
         query = f"""
         SELECT *
-        FROM Pet_Info
-        JOIN Pet_Condition ON Pet_Info.pet_condition_id = Pet_Condition.pet_condition_id
+        FROM pets.Pet_Info
+        JOIN pets.Pet_Condition ON pets.Pet_Info.pet_condition_id = pets.Pet_Condition.pet_condition_id
         WHERE {filter_type} = %s
         """
         cursor.execute(query, (filter_value,))

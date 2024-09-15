@@ -67,6 +67,7 @@ export default function Pets(): JSX.Element {
 
   useEffect(() => {
     getPets();
+    console.log(pets);
   }, []);
 
   return (
@@ -178,50 +179,16 @@ export default function Pets(): JSX.Element {
             setToggleSearchType(false);
           }}
         >
-          <PetCard
-            petDetails={dummyPet}
-            setTogglePetConditions={setTogglePetConditions}
-          />
-          <PetCard
-            petDetails={dummyPet}
-            setTogglePetConditions={setTogglePetConditions}
-          />
-          <PetCard
-            petDetails={dummyPet}
-            setTogglePetConditions={setTogglePetConditions}
-          />
-          <PetCard
-            petDetails={dummyPet}
-            setTogglePetConditions={setTogglePetConditions}
-          />
-          <PetCard
-            petDetails={dummyPet}
-            setTogglePetConditions={setTogglePetConditions}
-          />
-          <PetCard
-            petDetails={dummyPet}
-            setTogglePetConditions={setTogglePetConditions}
-          />
-          <PetCard
-            petDetails={dummyPet}
-            setTogglePetConditions={setTogglePetConditions}
-          />
-          <PetCard
-            petDetails={dummyPet}
-            setTogglePetConditions={setTogglePetConditions}
-          />
-          <PetCard
-            petDetails={dummyPet}
-            setTogglePetConditions={setTogglePetConditions}
-          />
-
-          {pets.length > 0 ? (
+          {pets ? (
             pets.map((pet: any) => {
-              <PetCard
-                petDetails={pet}
-                setTogglePetConditions={setTogglePetConditions}
-                key={pet.pet_id}
-              />;
+              console.log(pets.breed);
+              return (
+                <PetCard
+                  petDetails={pet}
+                  setTogglePetConditions={setTogglePetConditions}
+                  key={pet.pet_id}
+                />
+              );
             })
           ) : (
             <div className="w-full h-full text-center text-xl font-bold">
