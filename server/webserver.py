@@ -17,35 +17,15 @@ app.secret_key = "inf2002dbprojectpartone"
 
 def get_db_connection():
     try:
-        connection = connect(
-            host=os.getenv('DB_HOST'),
-            database=os.getenv('DB_NAME'),
-            user=os.getenv('DB_USER'),
-            password=os.getenv('DB_PASSWORD'),
-            charset=os.getenv('DB_CHARSET'),
-        )
-        if connection.is_connected():
-            db_info = connection.get_server_info()
-            print("Connected to DB Server version ", db_info)
-            cursor = connection.cursor()
-            cursor.execute("SELECT DATABASE();")
-            record = cursor.fetchone()
-            print("You're connected to database: ", record[0])
-            cursor.close()
-            return connection
-    except Error as e:
-        print("Error while connecting to MySQL", e)
+        conn = connect(host=os.getenv('HOST'),
+            database=os.getenv('DATABASENAME'),
+            user=os.getenv('DATABASEUSER'),
+            password=os.getenv('DATABASEPASSWORD'))
+        print("Successfully connected to the database")
+        return conn
+    except Error as err:
+        print(f"Error connecting to the database: {err}")
         return None
-    
-    
-# to test connection
-connection = get_db_connection()
-if connection is not None and connection.is_connected():
-    print("Connection successful!")
-    connection.close()
-else:
-    print("Connection failed.")
-
 
 @app.route('/api/v1')
 def index():
