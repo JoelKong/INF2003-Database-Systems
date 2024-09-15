@@ -7,7 +7,7 @@ import axios from "axios";
 
 export default function RegisterPage(): JSX.Element {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
+  // const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
 
@@ -16,7 +16,7 @@ export default function RegisterPage(): JSX.Element {
     try {
       const response = await axios.post(
         "http://127.0.0.1:5000/api/v1/register",
-        { email, name, password },
+        { name, password },
         { withCredentials: true }
       );
       console.log("Register success: ", response.data);
@@ -39,14 +39,14 @@ export default function RegisterPage(): JSX.Element {
             Register
           </h1>
           <form className="w-full max-w-md mb-6" onSubmit={handleSubmit}>
-            <input
-              className="w-full mb-4 p-2 rounded"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Email"
-              required
-            />
+            {/*<input*/}
+            {/*  className="w-full mb-4 p-2 rounded"*/}
+            {/*  type="email"*/}
+            {/*  value={email}*/}
+            {/*  onChange={(e) => setEmail(e.target.value)}*/}
+            {/*  placeholder="Email"*/}
+            {/*  required*/}
+            {/*/>*/}
             <input
               className="w-full mb-4 p-2 rounded"
               type="name"

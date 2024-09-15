@@ -7,7 +7,7 @@ import axios from "axios";
 
 export default function LoginPage(): JSX.Element {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
   const [password, setPassword] = useState("");
 
   const handleSubmit = async (e: any) => {
@@ -15,7 +15,7 @@ export default function LoginPage(): JSX.Element {
     try {
       const response = await axios.post(
         "http://127.0.0.1:5000/api/v1/login",
-        { email, password },
+        { name, password },
         { withCredentials: true }
       );
       console.log("Login success: ", response.data);
@@ -42,9 +42,9 @@ export default function LoginPage(): JSX.Element {
           <form className="w-full max-w-md mb-6" onSubmit={handleSubmit}>
             <input
               className="w-full mb-4 p-2 rounded"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              type="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
               placeholder="Email"
               required
             />

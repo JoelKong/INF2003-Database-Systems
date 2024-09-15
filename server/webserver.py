@@ -52,11 +52,11 @@ def index():
 @app.route('/api/v1/register', methods=['POST'])
 def register():
     data = request.json
-    email = data.get('email')
+    # email = data.get('email')
     name = data.get('name')
     password = data.get('password')
 
-    if not email or not name or not password:
+    if not name or not password:
         return jsonify({"error": "Missing required fields"}), 400
 
     hashed_password = generate_password_hash(password)
@@ -67,8 +67,8 @@ def register():
 
     try:
         cursor = connection.cursor()
-        cursor.execute("INSERT INTO adopters (email, name, password) VALUES (%s, %s, %s)",
-                       (email, name, hashed_password))
+        cursor.execute("INSERT INTO Adoptor (name, password) VALUES (%s, %s)",
+                       (name, hashed_password))
         connection.commit()
         return jsonify({"message": "User registered successfully"}), 201
     except Error as e:
@@ -82,10 +82,10 @@ def register():
 @app.route('/api/v1/login', methods=['POST'])
 def login():
     data = request.json
-    email = data.get('email')
+    name = data.get('name')
     password = data.get('password')
 
-    if not email or not password:
+    if not name or not password:
         return jsonify({"error": "Missing email or password"}), 400
 
     connection = get_db_connection()
@@ -94,15 +94,15 @@ def login():
 
     try:
         cursor = connection.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM adopters WHERE email = %s", (email,))
+        cursor.execute("SELECT * FROM Adoptor WHERE name = %s", (name,))
         user = cursor.fetchone()
 
         if user and check_password_hash(user['password'], password):
-            session['user_id'] = user['id']
+            session['user_id'] = user['adopter_id']
             return jsonify({"message": "Logged in successfully",
-                            "user": {"id": user['id'], "name": user['name'], "email": user['email']}}), 200
+                            "user": {"adopter_id": user['adopter_id'], "name": user['name']}}), 200
         else:
-            return jsonify({"error": "Invalid email or password"}), 401
+            return jsonify({"error": "Invalid name or password"}), 401
     except Error as e:
         return jsonify({"error": str(e)}), 500
     finally:
