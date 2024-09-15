@@ -23,7 +23,6 @@ def get_db_connection():
             user=os.getenv('DB_USER'),
             password=os.getenv('DB_PASSWORD'),
             charset=os.getenv('DB_CHARSET'),
-            collation=os.getenv('DB_COLLATION')
         )
         if connection.is_connected():
             db_info = connection.get_server_info()
@@ -151,31 +150,68 @@ def logout():
     return jsonify({"message": "Logged out successfully"})
 
 
-# POST route to compute algorithm
-@app.route('/api/v1/whateverpathyouwant', methods=['GET'])
-def get_adopted_pets():
-    # Get front end data
-    data = request.get_json() # if need any data from the front end just an example
-    start = data.get('start')
-    hotels = data.get('selectedHotels')
-    efficiencyType = data.get('efficiencyType')
-    departureTime = data.get('departureTime')
-    algorithmType = data.get('algorithm')
+@app.route('/api/v1/getpets', methods=['GET'])
+def get_all_pets():
+    connection = get_db_connection()
+    if connection is None:
+        return jsonify({"error": "Database connection failed"}), 500
+
+    try:
+        cursor = connection.cursor(dictionary=True)
+        query = """
+        SELECT *
+        FROM Pet_Info
+        JOIN Pet_Condition ON Pet_Info.pet_condition_id = Pet_Condition.pet_condition_id
+        """
+        cursor.execute(query)
+        pets = cursor.fetchall()
+
+        return jsonify(pets), 200
+
+    except Error as e:
+        return jsonify({"error": str(e)}), 500
+
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
 
 
-    # return bck to front end use jsonify
-    # if not forward_route or not return_route:
-    #     return jsonify({"error": "No route found"}), 500
+@app.route('/api/v1/filterpets', methods=['POST'])
+def filter_pets():
+    data = request.json
+    filter_type = data.get('type')
+    filter_value = data.get('value')
 
-    # # Return to front end
-    # response = {
-    #     "geojson_forward_route": geojson_forward_route,
-    #     "geojson_return_route": geojson_return_route,
-    #     "start": start,
-    #     "hotels": hotels,
-    #     "dashboardData": {"runtimeTaken": round(runtime, 5), "timeTaken": time_taken_hr_min, "totalCost": round(total_cost, 2), "ERPPassed": erp_passed, "forwardRouteRoads": forward_route_roads, "returnRouteRoads": return_route_roads},
-    # }
-    # return jsonify(response)
+    if not filter_type or not filter_value:
+        return jsonify({"error": "Missing filter type or value"}), 400
+
+    connection = get_db_connection()
+    if connection is None:
+        return jsonify({"error": "Database connection failed"}), 500
+
+    try:
+        cursor = connection.cursor(dictionary=True)
+
+        query = f"""
+        SELECT *
+        FROM Pet_Info
+        JOIN Pet_Condition ON Pet_Info.pet_condition_id = Pet_Condition.pet_condition_id
+        WHERE {filter_type} = %s
+        """
+        cursor.execute(query, (filter_value,))
+        pets = cursor.fetchall()
+
+        return jsonify(pets), 200
+
+    except Error as e:
+        return jsonify({"error": str(e)}), 500
+
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+
 
 if __name__ == '__main__':
     app.run(debug=True)

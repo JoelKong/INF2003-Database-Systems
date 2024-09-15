@@ -2,7 +2,7 @@
 
 export default function PetCard({ petDetails }: any): JSX.Element {
   return (
-    <article className="w-1/3 h-full border-2 rounded-lg shadow-xl">
+    <article className="w-96 h-full border-2 rounded-lg shadow-xl mb-4">
       <div className="w-full h-2/6 border-b-2">
         <img
           className="w-full h-full object-cover"

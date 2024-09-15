@@ -36,6 +36,24 @@ export default function Pets(): JSX.Element {
     }
   }
 
+  async function filterPets(e: any) {
+    e.preventDefault();
+    try {
+      const response = await fetch("http://127.0.0.1:5000/api/v1/filterpets", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(searchedValue),
+      });
+
+      const data = await response.json();
+      setPets(data);
+    } catch (error) {
+      console.error("Error fetching pets:", error);
+    }
+  }
+
   useEffect(() => {
     getPets();
   }, []);
@@ -48,14 +66,16 @@ export default function Pets(): JSX.Element {
             List Of Pets
           </h1>
           <div className="w-26 border-2 rounded-lg border-gray-600 flex flex-row absolute right-0">
-            <input
-              className="w-5/6 p-2 tracking-widest rounded-lg outline-none"
-              placeholder={`Search for ${searchedValue.type}`}
-              value={searchedValue.value}
-              onChange={(e: any) => {
-                setSearchedValue({ ...searchedValue, value: e.target.value });
-              }}
-            />
+            <form onSubmit={(e: any) => filterPets(e)}>
+              <input
+                className="w-full p-2 tracking-widest rounded-lg outline-none"
+                placeholder={`Search for ${searchedValue.type}`}
+                value={searchedValue.value}
+                onChange={(e: any) => {
+                  setSearchedValue({ ...searchedValue, value: e.target.value });
+                }}
+              />
+            </form>
             <button
               className="w-1/6 flex justify-center items-center border-l-2 border-black"
               onClick={() => {
@@ -65,7 +85,7 @@ export default function Pets(): JSX.Element {
               <IoMdArrowDropdown />
             </button>
             {toggleSearchType && (
-              <div className="absolute top-full w-full bg-white border-gray-600 border-l-2 border-r-2 border-b-2 mt-[0.1rem] rounded-md">
+              <div className="absolute top-full w-full bg-white border-gray-600 border-2 mt-[0.01rem] rounded-br-md rounded-bl-md">
                 <button
                   className="p-2 w-full border-b-2 text-left tracking-widest"
                   onClick={() => {
@@ -94,7 +114,12 @@ export default function Pets(): JSX.Element {
             )}
           </div>
         </div>
-        <div className="w-full mt-4 pl-10 pr-10 h-full flex flex-row flex-wrap overflow-y-scroll">
+        <div className="w-full mt-4 pl-6 pr-6 h-full flex flex-row flex-wrap justify-evenly overflow-y-scroll overflow-x-hidden">
+          <PetCard petDetails={dummyPet} />
+          <PetCard petDetails={dummyPet} />
+          <PetCard petDetails={dummyPet} />
+          <PetCard petDetails={dummyPet} />
+          <PetCard petDetails={dummyPet} />
           <PetCard petDetails={dummyPet} />
           <PetCard petDetails={dummyPet} />
           <PetCard petDetails={dummyPet} />
