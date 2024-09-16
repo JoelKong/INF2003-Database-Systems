@@ -116,7 +116,7 @@ List Of Pets
         {/* Search input */}
         <input
           className="w-1/2 p-2 tracking-widest rounded-lg outline-none mr-2"
-          placeholder={'Search for ${searchedValue.type}'}
+          placeholder={`Search for ${searchedValue.type}`}
           value={searchedValue.value}
           onChange={(e: any) => {
             setSearchedValue({ ...searchedValue, value: e.target.value });

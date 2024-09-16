@@ -195,7 +195,7 @@ def filter_pets():
 
 
     # Filter by sterilisation status (0 or 1)
-    if sterilisation_status is not None:  # Check explicitly for None, as 0 and 1 are valid
+    if sterilisation_status is not None and sterilisation_status in ["0", "1"]:  # Check explicitly for None, as 0 and 1 are valid
         query += " AND Pet_Condition.sterilisation_status = %s"
         params.append(sterilisation_status)
 
