@@ -111,7 +111,7 @@ def login():
             connection.close()
 
 
-@app.route('/api/v1/check_session')
+@app.route('/api/v1/check_session') 
 def check_session():
     print(dict(session))
     return "Check the console for session data"
@@ -128,7 +128,6 @@ def check_auth():
 def logout():
     session.pop('user_id', None)
     return jsonify({"message": "Logged out successfully"})
-
 
 @app.route('/api/v1/getpets', methods=['GET'])
 def get_all_pets():
@@ -160,11 +159,45 @@ def get_all_pets():
 @app.route('/api/v1/filterpets', methods=['POST'])
 def filter_pets():
     data = request.json
-    filter_type = data.get('type')
-    filter_value = data.get('value')
 
-    if not filter_type or not filter_value:
-        return jsonify({"error": "Missing filter type or value"}), 400
+    filter_type = data.get('type') 
+    filter_value = data.get('value')  
+    gender = data.get('gender')  
+    health_condition = data.get('health_condition')  
+    sterilisation_status = data.get('sterilisation_status')
+
+    # Start building the query
+    query = """
+    SELECT Pet_Info.*, Pet_Condition.*
+    FROM Pet_Info
+    JOIN Pet_Condition ON Pet_Info.pet_condition_id = Pet_Condition.pet_condition_id
+    WHERE 1=1  -- Placeholder to allow dynamic conditions
+    """
+    
+    params = []
+
+    # Apply filters if they are provided
+
+    # Filter by a generic type (name, breed, etc.)
+    if filter_type and filter_value:
+        query += f" AND Pet_Info.{filter_type} LIKE %s"
+        params.append(f"%{filter_value}%")  # Use LIKE for partial matches
+
+    # Filter by gender
+    if gender:
+        query += " AND Pet_Info.gender = %s"
+        params.append(gender)
+
+    # Filter by health condition
+    if health_condition:
+        query += " AND Pet_Condition.health_condition = %s"
+        params.append(health_condition)
+
+
+    # Filter by sterilisation status (0 or 1)
+    if sterilisation_status is not None:  # Check explicitly for None, as 0 and 1 are valid
+        query += " AND Pet_Condition.sterilisation_status = %s"
+        params.append(sterilisation_status)
 
     connection = get_db_connection()
     if connection is None:
@@ -172,14 +205,9 @@ def filter_pets():
 
     try:
         cursor = connection.cursor(dictionary=True)
-
-        query = f"""
-        SELECT *
-        FROM pets.Pet_Info
-        JOIN pets.Pet_Condition ON pets.Pet_Info.pet_condition_id = pets.Pet_Condition.pet_condition_id
-        WHERE {filter_type} = %s
-        """
-        cursor.execute(query, (filter_value,))
+        
+        # Execute the dynamically built query
+        cursor.execute(query, params)
         pets = cursor.fetchall()
 
         return jsonify(pets), 200
@@ -191,6 +219,7 @@ def filter_pets():
         if connection.is_connected():
             cursor.close()
             connection.close()
+
 
 
 if __name__ == '__main__':
