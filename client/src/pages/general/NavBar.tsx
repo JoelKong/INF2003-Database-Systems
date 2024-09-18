@@ -23,6 +23,12 @@ export default function NavBar(): JSX.Element {
             >
               List of Pets
             </Link>
+            <Link
+              to={"/favourites"}
+              className="text-gray-700 hover:text-blue-500"
+            >
+              Favourites
+            </Link>
           </div>
 
           <div>
