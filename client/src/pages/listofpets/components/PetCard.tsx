@@ -12,6 +12,7 @@ export default function PetCard({
             alt={petDetails.name}
           />
         </div>
+
         <div className="flex flex-col h-3/6 justify-evenly p-4 tracking-wide overflow-y-auto overflow-x-hidden break-words">
           <div className="flex flex-row mb-2">
             <p className="font-bold mr-1">Pet ID:</p> {petDetails.pet_id}
@@ -35,7 +36,8 @@ export default function PetCard({
           </div>
           <p>{petDetails.description}</p>
         </div>
-        <div className="flex flex-row h-1/6 justify-evenly items-center">
+
+        <div className="flex flex-row h-1/6 justify-between items-center space-x-4 p-4 border-t-2">
           <button
             className="bg-blue-500 text-white px-4 py-2 rounded-lg transition ease-in-out hover:scale-110 hover:bg-indigo-500 duration-300"
             onClick={() => {
@@ -46,6 +48,9 @@ export default function PetCard({
           </button>
           <button className="bg-blue-500 text-white px-4 py-2 rounded-lg transition ease-in-out hover:scale-110 hover:bg-indigo-500 duration-300">
             Reserve Pet
+          </button>
+          <button className="bg-red-500 text-white px-4 py-2 rounded-lg transition ease-in-out hover:scale-110 hover:bg-indigo-500 duration-300">
+            Add to Favourite
           </button>
         </div>
       </article>
