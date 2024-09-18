@@ -18,18 +18,29 @@ export default function LoginPage(): JSX.Element {
         { name, password },
         { withCredentials: true }
       );
-      console.log("Login success: ", response.data);
-      // Navigate to the home page after successful login
-      navigate("/listofpets");
+      
+      // Check if the response was successful
+      if (response.status === 200) {
+        const { adopter_id, name } = response.data.user; // Extract user details from the response
+        
+        // Store user information in sessionStorage
+        sessionStorage.setItem("user", JSON.stringify({ adopter_id, name }));
+        
+        console.log("Login success: ", response.data);
+        
+        // Navigate to the list of pets page after successful login
+        navigate("/listofpets");
+      }
     } catch (error: any) {
       console.error(
         "Login error:",
         error.response ? error.response.data : error.message
       );
-      // You might want to show an error message to the user here
+      // Show an error message to the user
       alert("Login failed. Please check your credentials and try again.");
     }
   };
+  
 
   return (
     <div className="w-screen h-screen">

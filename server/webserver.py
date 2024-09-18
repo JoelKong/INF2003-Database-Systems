@@ -1,4 +1,3 @@
-# make sure install all these bs then add to requirements.txt file
 from flask import Flask, jsonify, request, session
 from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
