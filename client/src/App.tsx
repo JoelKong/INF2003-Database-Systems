@@ -5,7 +5,7 @@ import Home from "./pages/home/Home";
 import ListOfPets from "./pages/listofpets/ListOfPets";
 import LoginPage from "./pages/login/LoginPage";
 import RegisterPage from "./pages/register/RegisterPage";
-import Favourites from "./pages/favourites/favourites";
+import Favourites from "./pages/favourites/Favourites";
 
 function App() {
   return (
@@ -19,6 +19,7 @@ function App() {
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/listofpets" element={<ListOfPets />} />
             <Route path="/favourites" element={<Favourites />} />
+            <Route path="/cart" element={<Favourites />} />
             {/* <Route path="/path2" element={<component2 />} />
           <Route exact path="/path3" element={<component3 />} /> */}
           </Routes>

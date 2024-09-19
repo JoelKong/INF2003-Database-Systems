@@ -7,17 +7,16 @@ export default function Pets(): JSX.Element {
   const [searchedValue, setSearchedValue] = useState<any>({
     value: "",
     type: "name",
-    gender: "",              
-    health_condition: "",             
-    sterilisation_status: ""
-       
+    gender: "",
+    health_condition: "",
+    sterilisation_status: "",
   });
   const [toggleSearchType, setToggleSearchType] = useState<boolean>(false);
   const [togglePetConditions, setTogglePetConditions] = useState<any>({
     toggle: false,
     data: {},
   });
-  
+
   function changeSearchType(type: string) {
     setSearchedValue({ ...searchedValue, value: "", type: type });
     setToggleSearchType(false);
@@ -106,132 +105,139 @@ export default function Pets(): JSX.Element {
         </section>
       )}
       <div className="w-11/12 border-2 h-4/5 bg-white rounded-lg flex flex-col items-center p-4">
-  <div className="flex flex-row w-full items-center justify-between relative">
-    <h1 className="font-bold text-2xl border-b-4 border-gray-700 text-center">
+        <div className="flex flex-row w-full items-center justify-between relative">
+          <h1 className="font-bold text-2xl border-b-4 border-gray-700 text-center">
+            List Of Pets
+          </h1>
+          <div className="w-3/4 border-2 rounded-lg border-gray-600 flex flex-row items-center justify-between p-2">
+            <form
+              className="flex items-center w-full"
+              onSubmit={(e: any) => filterPets(e)}
+            >
+              {/* Search input */}
+              <input
+                className="w-1/2 p-2 tracking-widest rounded-lg outline-none mr-2"
+                placeholder={`Search for ${searchedValue.type}`}
+                value={searchedValue.value}
+                onChange={(e: any) => {
+                  setSearchedValue({ ...searchedValue, value: e.target.value });
+                }}
+              />
 
-List Of Pets
-    </h1>
-    <div className="w-3/4 border-2 rounded-lg border-gray-600 flex flex-row items-center justify-between p-2">
-      <form className="flex items-center w-full" onSubmit={(e: any) => filterPets(e)}>
-        {/* Search input */}
-        <input
-          className="w-1/2 p-2 tracking-widest rounded-lg outline-none mr-2"
-          placeholder={`Search for ${searchedValue.type}`}
-          value={searchedValue.value}
-          onChange={(e: any) => {
-            setSearchedValue({ ...searchedValue, value: e.target.value });
-          }}
-        />
+              {/* Gender filter */}
+              <select
+                value={searchedValue.gender}
+                onChange={(e) =>
+                  setSearchedValue({ ...searchedValue, gender: e.target.value })
+                }
+                className="p-2 rounded-lg mr-2"
+              >
+                <option value="">All Genders</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+              </select>
 
-        {/* Gender filter */}
-        <select
-          value={searchedValue.gender}
-          onChange={(e) =>
-            setSearchedValue({ ...searchedValue, gender: e.target.value })
-          }
-          className="p-2 rounded-lg mr-2"
-        >
-          <option value="">All Genders</option>
-          <option value="Male">Male</option>
-          <option value="Female">Female</option>
-        </select>
+              {/* Health Condition filter */}
+              <select
+                value={searchedValue.health_condition}
+                onChange={(e) =>
+                  setSearchedValue({
+                    ...searchedValue,
+                    health_condition: e.target.value,
+                  })
+                }
+                className="p-2 rounded-lg mr-2"
+              >
+                <option value="">Health Condition</option>
+                <option value="good">Good</option>
+                <option value="bad">Bad</option>
+              </select>
 
-        {/* Health Condition filter */}
-        <select
-          value={searchedValue.health_condition}
-          onChange={(e) =>
-            setSearchedValue({ ...searchedValue, health_condition: e.target.value })
-          }
-          className="p-2 rounded-lg mr-2"
-        >
-          <option value="">Health Condition</option>
-          <option value="good">Good</option>
-          <option value="bad">Bad</option>
-        </select>
+              {/* Sterilisation Status filter */}
+              <select
+                value={searchedValue.sterilisation_status}
+                onChange={(e) =>
+                  setSearchedValue({
+                    ...searchedValue,
+                    sterilisation_status: e.target.value,
+                  })
+                }
+                className="p-2 rounded-lg mr-2"
+              >
+                <option value="">Sterilisation Status</option>
+                <option value="1">Sterilised</option>
+                <option value="0">Not Sterilised</option>
+              </select>
 
-        {/* Sterilisation Status filter */}
-        <select
-          value={searchedValue.sterilisation_status}
-          onChange={(e) =>
-            setSearchedValue({ ...searchedValue, sterilisation_status: e.target.value })
-          }
-          className="p-2 rounded-lg mr-2"
-        >
-          <option value="">Sterilisation Status</option>
-          <option value="1">Sterilised</option>
-          <option value="0">Not Sterilised</option>
-        </select>
-
-        <button
-          type="submit"
-          className="p-2 bg-blue-500 text-white rounded-lg"
-        >
-          Filter
-        </button>
-      </form>
-      <button
-        className="ml-2 flex justify-center items-center border-l-2 border-black"
-        onClick={() => {
-          setToggleSearchType(!toggleSearchType);
-        }}
-      >
-        <IoMdArrowDropdown />
-      </button>
-      {toggleSearchType && (
-        <div className="absolute top-full w-full bg-white border-gray-600 border-2 mt-[0.01rem] rounded-br-md rounded-bl-md">
-          <button
-            className="p-2 w-full border-b-2 text-left tracking-widest"
-            onClick={() => {
-              changeSearchType("name");
-            }}
-          >
-            Search for name
-          </button>
-          <button
-            className="p-2 w-full border-b-2 text-left tracking-widest"
-            onClick={() => {
-              changeSearchType("type");
-            }}
-          >
-            Search for type
-          </button>
-          <button
-            className="p-2 w-full border-b-2 text-left tracking-widest"
-            onClick={() => {
-              changeSearchType("breed");
-            }}
-          >
-            Search for breed
-          </button>
+              <button
+                type="submit"
+                className="p-2 bg-blue-500 text-white rounded-lg"
+              >
+                Filter
+              </button>
+            </form>
+            <button
+              className="ml-2 flex justify-center items-center border-l-2 border-black"
+              onClick={() => {
+                setToggleSearchType(!toggleSearchType);
+              }}
+            >
+              <IoMdArrowDropdown />
+            </button>
+            {toggleSearchType && (
+              <div className="absolute top-full w-full bg-white border-gray-600 border-2 mt-[0.01rem] rounded-br-md rounded-bl-md">
+                <button
+                  className="p-2 w-full border-b-2 text-left tracking-widest"
+                  onClick={() => {
+                    changeSearchType("name");
+                  }}
+                >
+                  Search for name
+                </button>
+                <button
+                  className="p-2 w-full border-b-2 text-left tracking-widest"
+                  onClick={() => {
+                    changeSearchType("type");
+                  }}
+                >
+                  Search for type
+                </button>
+                <button
+                  className="p-2 w-full border-b-2 text-left tracking-widest"
+                  onClick={() => {
+                    changeSearchType("breed");
+                  }}
+                >
+                  Search for breed
+                </button>
+              </div>
+            )}
+          </div>
         </div>
-      )}
-    </div>
-  </div>
-  <div
-    className="w-full mt-4 pl-6 pr-6 h-full flex flex-row flex-wrap justify-evenly overflow-y-scroll overflow-x-hidden"
-    onClick={() => {
-      setToggleSearchType(false);
-    }}
-  >
-    {pets.length > 0 ? (
-      pets.map((pet: any) => {
-        console.log(pets.breed);
-        return (
-          <PetCard
-            petDetails={pet}
-            setTogglePetConditions={setTogglePetConditions}
-            key={pet.pet_id}
-          />
-        );
-      })
-    ) : (
-      <div className="w-full h-full text-center text-xl font-bold">
-        No Pets Available
+        <div
+          className="w-full mt-4 pl-6 pr-6 h-full flex flex-row flex-wrap justify-evenly overflow-y-scroll overflow-x-hidden"
+          onClick={() => {
+            setToggleSearchType(false);
+          }}
+        >
+          {pets.length > 0 ? (
+            pets.map((pet: any) => {
+              console.log(pets.breed);
+              return (
+                <PetCard
+                  petDetails={pet}
+                  setTogglePetConditions={setTogglePetConditions}
+                  key={pet.pet_id}
+                />
+              );
+            })
+          ) : (
+            <div className="w-full h-full text-center text-xl font-bold">
+              No Pets Available
+            </div>
+          )}
+        </div>
       </div>
-    )}
-  </div>
-</div>
-
     </section>
   );
 }

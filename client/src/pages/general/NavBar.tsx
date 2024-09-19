@@ -1,5 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { BsCartFill } from "react-icons/bs";
 
 export default function NavBar(): JSX.Element {
   const navigate = useNavigate();
@@ -50,12 +51,17 @@ export default function NavBar(): JSX.Element {
           <div>
             {adopterName ? (
               <div className="flex items-center space-x-4">
-                <span className="text-gray-700">
-                  Welcome, {adopterName}!
-                </span>
+                <span className="text-gray-700">Welcome, {adopterName}!</span>
+                <button
+                  onClick={() => {
+                    navigate("/cart");
+                  }}
+                >
+                  <BsCartFill />
+                </button>
                 <button
                   className="bg-red-500 text-white px-4 py-2 rounded-lg transition ease-in-out hover:scale-110 hover:bg-red-600 duration-300"
-                  onClick={handleLogout}
+                  onClick={() => handleLogout()}
                 >
                   Logout
                 </button>
