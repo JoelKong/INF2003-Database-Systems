@@ -19,6 +19,7 @@ function App() {
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/listofpets" element={<ListOfPets />} />
             <Route path="/favourites" element={<Favourites />} />
+            <Route path="/cart" element={<Favourites />} />
             {/* <Route path="/path2" element={<component2 />} />
           <Route exact path="/path3" element={<component3 />} /> */}
           </Routes>
