@@ -263,36 +263,66 @@ def addFavourite():
             cursor.close()
             connection.close()
 
-@app.route('/api/v1/checkFavourite', methods=['GET'])
-def checkFavourite():
-    adopter_id = session.get('user_id')  # Fetch user ID from session
+# @app.route('/api/v1/checkFavourite', methods=['GET'])
+# def checkFavourite():
+#     adopter_id = session.get('user_id')  # Fetch user ID from session
+#
+#     if not adopter_id:
+#         return jsonify({"error": "User not logged in"}), 401  # User not logged in
+#
+#     pet_id = request.args.get('pet_id')
+#
+#     connection = get_db_connection()
+#     if connection is None:
+#         return jsonify({"error": "Database connection failed"}), 500
+#
+#     try:
+#         cursor = connection.cursor(dictionary=True)
+#         cursor.execute("SELECT * FROM Favourites WHERE adopter_id = %s AND pet_id = %s", (adopter_id, pet_id))
+#         favourite = cursor.fetchone()
+#
+#         if favourite:
+#             return jsonify({"isFavourite": True}), 200
+#         else:
+#             return jsonify({"isFavourite": False}), 200
+#
+#     except Error as e:
+#         return jsonify({"error": str(e)}), 500
+#
+#     finally:
+#         if connection.is_connected():
+#             cursor.close()
+#             connection.close()
+# TODO - fix checking fav
 
-    if not adopter_id:
-        return jsonify({"error": "User not logged in"}), 401  # User not logged in
+@app.route('/api/v1/getFavourites', methods=['GET'])
+def getFavourites():
+    try:
+        adopter_id = session['user_id']
+    except KeyError:
+        return jsonify({"error": "User not logged in"}), 401
 
-    pet_id = request.args.get('pet_id')
-    
     connection = get_db_connection()
-    if connection is None:
-        return jsonify({"error": "Database connection failed"}), 500
+    cursor = connection.cursor(dictionary=True)
 
     try:
-        cursor = connection.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM Favourites WHERE adopter_id = %s AND pet_id = %s", (adopter_id, pet_id))
-        favourite = cursor.fetchone()
+        query = """
+            SELECT pi.*
+            FROM Favourites f
+            JOIN Pet_Info pi ON f.pet_id = pi.pet_id
+            WHERE f.adopter_id = %s
+        """
+        cursor.execute(query, (adopter_id,))
+        favourited_pets = cursor.fetchall()
 
-        if favourite:
-            return jsonify({"isFavourite": True}), 200
-        else:
-            return jsonify({"isFavourite": False}), 200
+        return jsonify(favourited_pets)
 
-    except Error as e:
+    except Exception as e:
         return jsonify({"error": str(e)}), 500
 
     finally:
-        if connection.is_connected():
-            cursor.close()
-            connection.close()
+        cursor.close()
+        connection.close()
 
 
 
