@@ -1,7 +1,63 @@
+import { useState, useEffect } from "react";
+import axios from "axios";
+
 export default function PetCard({
   petDetails,
   setTogglePetConditions,
 }: any): JSX.Element {
+  const [isFavourite, setIsFavourite] = useState<boolean>(false);
+
+  // Check if the pet is already in the favourites (server-side check)
+  useEffect(() => {
+    const user = sessionStorage.getItem("user");
+    if (user) {
+      // Make a request to the backend to check if the pet is in the user's favourites
+      const fetchFavourites = async () => {
+        try {
+          const response = await axios.get(
+            `http://127.0.0.1:5000/api/v1/checkFavourite?pet_id=${petDetails.pet_id}`,
+            { withCredentials: true } // Ensure cookies/session is included
+          );
+
+          // If the pet is already in favourites, mark it as favourite
+          if (response.data.isFavourite) {
+            setIsFavourite(true);
+          }
+        } catch (error) {
+          console.error("Error checking favourites:", error);
+        }
+      };
+
+      fetchFavourites();
+    }
+  }, [petDetails]);
+
+  // Function to handle adding the pet to favourites
+  const handleAddToFavourites = async () => {
+    const user = sessionStorage.getItem("user");
+    if (!user) {
+      alert("You need to log in to add pets to favourites.");
+      return;
+    }
+
+    try {
+      const response = await axios.post(
+        "http://127.0.0.1:5000/api/v1/addFavourite",
+        { pet_id: petDetails.pet_id }, // Send pet_id to the backend
+        { withCredentials: true } // Ensure session cookies are sent
+      );
+
+      if (response.status === 201) {
+        setIsFavourite(true);
+        alert(`${petDetails.name} has been added to your favourites.`);
+      } else {
+        alert(response.data.error || "Failed to add to favourites.");
+      }
+    } catch (error) {
+      console.error("Error adding pet to favourites:", error);
+      alert("An error occurred while adding to favourites.");
+    }
+  };
   return (
     <>
       <article className="w-96 h-full border-2 rounded-lg shadow-xl mb-4">
@@ -49,8 +105,14 @@ export default function PetCard({
           <button className="bg-blue-500 text-white px-4 py-2 rounded-lg transition ease-in-out hover:scale-110 hover:bg-indigo-500 duration-300">
             Reserve Pet
           </button>
-          <button className="bg-red-500 text-white px-4 py-2 rounded-lg transition ease-in-out hover:scale-110 hover:bg-indigo-500 duration-300">
-            Add to Favourite
+          <button
+            className={`${
+              isFavourite ? "bg-gray-500" : "bg-red-500"
+            } text-white px-4 py-2 rounded-lg transition ease-in-out hover:scale-110 hover:bg-indigo-500 duration-300`}
+            onClick={handleAddToFavourites}
+            disabled={isFavourite}
+          >
+            {isFavourite ? "Added to Favourite" : "Add to Favourite"}
           </button>
         </div>
       </article>

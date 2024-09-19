@@ -5,7 +5,7 @@ import Home from "./pages/home/Home";
 import ListOfPets from "./pages/listofpets/ListOfPets";
 import LoginPage from "./pages/login/LoginPage";
 import RegisterPage from "./pages/register/RegisterPage";
-import Favourites from "./pages/favourites/favourites";
+import Favourites from "./pages/favourites/Favourites";
 
 function App() {
   return (

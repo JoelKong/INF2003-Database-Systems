@@ -6,16 +6,14 @@ export default function NavBar(): JSX.Element {
   const [adopterName, setAdopterName] = useState<string | null>(null);
 
   useEffect(() => {
-    // Fetch user information from sessionStorage
     const user = sessionStorage.getItem("user");
     if (user) {
       const parsedUser = JSON.parse(user);
-      setAdopterName(parsedUser.name); // Assuming the user object has a 'name' field
+      setAdopterName(parsedUser.name); 
     }
   }, []);
 
   const handleLogout = () => {
-    // Clear user information on logout
     sessionStorage.removeItem("user");
     setAdopterName(null);
     navigate("/login");

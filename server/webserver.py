@@ -110,10 +110,11 @@ def login():
             connection.close()
 
 
-@app.route('/api/v1/check_session') 
+@app.route('/api/v1/check_session', methods=['GET'])
 def check_session():
-    print(dict(session))
-    return "Check the console for session data"
+    if 'user_id' in session:
+        return jsonify({"message": f"Session user_id: {session['user_id']}"})
+    return jsonify({"error": "No session found"}), 401
 
 
 @app.route('/api/v1/check_auth')
@@ -210,6 +211,80 @@ def filter_pets():
         pets = cursor.fetchall()
 
         return jsonify(pets), 200
+
+    except Error as e:
+        return jsonify({"error": str(e)}), 500
+
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+
+@app.route('/api/v1/addFavourite', methods=['POST'])
+def addFavourite():
+
+    if 'user_id' not in session:
+        return jsonify({"error": "User not logged in"}), 401
+    
+    data = request.json
+    pet_id = data.get('pet_id')
+    
+    if not pet_id:
+        return jsonify({"error": "Pet ID is required"}), 400
+    
+    adopter_id = session['user_id'] 
+    
+    connection = get_db_connection()
+    if connection is None:
+        return jsonify({"error": "Database connection failed"}), 500
+    
+    try:
+        cursor = connection.cursor()
+
+        #check if the pet is already in the adopter's favourites
+        cursor.execute("SELECT * FROM Favourites WHERE adopter_id = %s AND pet_id = %s", (adopter_id, pet_id))
+        if cursor.fetchone():
+            return jsonify({"error": "Pet is already in favourites"}), 400
+
+        #insert the favourite pet into the Favourites table
+        cursor.execute(
+            "INSERT INTO Favourites (adopter_id, pet_id) VALUES (%s, %s)", 
+            (adopter_id, pet_id)
+        )
+        connection.commit()
+
+        return jsonify({"message": "Pet added to favourites successfully"}), 201
+
+    except Error as e:
+        return jsonify({"error": str(e)}), 500
+
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+
+@app.route('/api/v1/checkFavourite', methods=['GET'])
+def checkFavourite():
+    adopter_id = session.get('user_id')  # Fetch user ID from session
+
+    if not adopter_id:
+        return jsonify({"error": "User not logged in"}), 401  # User not logged in
+
+    pet_id = request.args.get('pet_id')
+    
+    connection = get_db_connection()
+    if connection is None:
+        return jsonify({"error": "Database connection failed"}), 500
+
+    try:
+        cursor = connection.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM Favourites WHERE adopter_id = %s AND pet_id = %s", (adopter_id, pet_id))
+        favourite = cursor.fetchone()
+
+        if favourite:
+            return jsonify({"isFavourite": True}), 200
+        else:
+            return jsonify({"isFavourite": False}), 200
 
     except Error as e:
         return jsonify({"error": str(e)}), 500
