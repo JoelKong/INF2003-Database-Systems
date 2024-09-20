@@ -9,7 +9,7 @@ export default function Checkout(): JSX.Element {
   async function confirmReservation(e: any) {
     e.preventDefault();
     const user: any = sessionStorage.getItem("user");
-    const adopter_id = JSON.parse(user).adopter_id;
+    const adopter_id: string = JSON.parse(user).adopter_id;
     const response = await fetch(
       "http://127.0.0.1:5000/api/v1/confirmreservation",
       {

@@ -1,6 +1,6 @@
 /** @format */
 
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import {BrowserRouter as Router, Routes, Route} from "react-router-dom";
 import HomePage from "./pages/home/HomePage";
 import ListOfPetsPage from "./pages/listofpets/ListOfPetsPage.tsx";
 import LoginPage from "./pages/login/LoginPage";
@@ -16,13 +16,13 @@ function App() {
       <main className="relative z-20">
         <Router>
           <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/listofpets" element={<ListOfPetsPage />} />
-            <Route path="/favourites" element={<FavouritesPage />} />
-            <Route path="/cart" element={<Cart />} />
-            <Route path="/checkout" element={<Checkout />} />
+            <Route path="/" element={<HomePage/>}/>
+            <Route path="/login" element={<LoginPage/>}/>
+            <Route path="/register" element={<RegisterPage/>}/>
+            <Route path="/listofpets" element={<ListOfPetsPage/>}/>
+            <Route path="/favourites" element={<FavouritesPage/>}/>
+            <Route path="/cart" element={<Cart/>}/>
+            <Route path="/checkout" element={<Checkout/>}/>
           </Routes>
         </Router>
       </main>
@@ -30,6 +30,5 @@ function App() {
   );
 }
 
-// check
 
 export default App;
