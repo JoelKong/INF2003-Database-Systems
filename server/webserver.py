@@ -271,32 +271,34 @@ def checkFavourite():
     data = request.json
     adopter_id = data.get('adopter_id')
 
-    if not adopter_id:
-        return jsonify({"error": "User not logged in"}), 401  # User not logged in
+@app.route('/api/v1/getFavourites', methods=['GET'])
+def getFavourites():
+    try:
+        adopter_id = session['user_id']
+    except KeyError:
+        return jsonify({"error": "User not logged in"}), 401
 
-    pet_id = request.args.get('pet_id')
-    
     connection = get_db_connection()
-    if connection is None:
-        return jsonify({"error": "Database connection failed"}), 500
+    cursor = connection.cursor(dictionary=True)
 
     try:
-        cursor = connection.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM Favourites WHERE adopter_id = %s AND pet_id = %s", (adopter_id, pet_id))
-        favourite = cursor.fetchone()
+        query = """
+            SELECT pi.*
+            FROM Favourites f
+            JOIN Pet_Info pi ON f.pet_id = pi.pet_id
+            WHERE f.adopter_id = %s
+        """
+        cursor.execute(query, (adopter_id,))
+        favourited_pets = cursor.fetchall()
 
-        if favourite:
-            return jsonify({"isFavourite": True}), 200
-        else:
-            return jsonify({"isFavourite": False}), 200
+        return jsonify(favourited_pets)
 
-    except Error as e:
+    except Exception as e:
         return jsonify({"error": str(e)}), 500
 
     finally:
-        if connection.is_connected():
-            cursor.close()
-            connection.close()
+        cursor.close()
+        connection.close()
 
 
 @app.route('/api/v1/addtocart', methods=['POST'])
@@ -337,6 +339,71 @@ def addToCart():
             connection.close()
 
 
+@app.route('/api/v1/getcart', methods=['POST'])
+def getCart():
+    data = request.json
+    adopter_id = data.get('adopter_id')
+
+    
+    connection = get_db_connection()
+    if connection is None:
+        return jsonify({"error": "Database connection failed"}), 500
+
+    try:
+        cursor = connection.cursor(dictionary=True)
+        cursor.execute("""
+            SELECT * FROM pets.Pet_Info 
+            JOIN pets.Pet_Condition ON pets.Pet_Info.pet_condition_id = pets.Pet_Condition.pet_condition_id 
+            WHERE pets.Pet_Info.pet_id IN (SELECT pet_id FROM Cart WHERE adopter_id = %s)
+        """, (adopter_id,))
+        cart = cursor.fetchall()
+
+        return jsonify(cart), 200
+
+    except Error as e:
+        print(e)
+        return jsonify({"error": str(e)}), 500
+
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+
+@app.route('/api/v1/removefromcart', methods=['POST'])
+def removeFromCart():
+    data = request.json
+    adopter_id = data.get('adopter_id')
+    pet_id = data.get('pet_id')
+
+    if not adopter_id or not pet_id:
+        return jsonify({"error": "Missing adopter_id or pet_id"}), 400
+
+    connection = get_db_connection()
+    if connection is None:
+        return jsonify({"error": "Database connection failed"}), 500
+
+    try:
+        cursor = connection.cursor()
+
+        # Delete the pet from the cart
+        cursor.execute("""
+            DELETE FROM Cart 
+            WHERE adopter_id = %s AND pet_id = %s
+        """, (adopter_id, pet_id))
+
+        connection.commit()
+
+
+        return jsonify("Success"), 200
+
+    except Error as e:
+        print(e)
+        return jsonify({"error": str(e)}), 500
+
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
 
 
 if __name__ == '__main__':
