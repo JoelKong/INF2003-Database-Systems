@@ -10,9 +10,9 @@ export default function PetCard({
 
   // useEffect to check if pet is already favourited
   useEffect(() => {
-    const isAlreadyFavourite = favouritedPets.some(
-      (favPet: any) => favPet.pet_id === petDetails.pet_id
-    );
+    const isAlreadyFavourite = favouritedPets && favouritedPets.length > 0
+      ? favouritedPets.some((favPet: any) => favPet.pet_id === petDetails.pet_id)
+      : false;
     setIsFavourite(isAlreadyFavourite);
   }, [favouritedPets, petDetails]);
 
