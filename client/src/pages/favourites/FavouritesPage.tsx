@@ -23,9 +23,12 @@ export default function FavouritesPage(): JSX.Element {
 
   async function getFavourites() {
     try {
-      const response = await fetch("http://127.0.0.1:5000/api/v1/getFavourites", {
-        credentials: "include"
-      });
+      const response = await fetch(
+        "http://127.0.0.1:5000/api/v1/getFavourites",
+        {
+          credentials: "include",
+        }
+      );
       const data = await response.json();
       setFavouritedPets(data);
     } catch (error) {
@@ -40,14 +43,14 @@ export default function FavouritesPage(): JSX.Element {
       <NavBar />
       <div className="pt-16">
         <h1 className="text-2xl font-bold mb-4">Your Favourite Pets</h1>
-        
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {favouritedPets.length > 0 ? (
             favouritedPets.map((pet) => (
-              <PetCard 
-                key={pet.pet_id} 
-                petDetails={pet} 
-                setTogglePetConditions={() => {}}  // If you need to handle conditions
+              <PetCard
+                key={pet.pet_id}
+                petDetails={pet}
+                setTogglePetConditions={() => {}} // If you need to handle conditions
               />
             ))
           ) : (

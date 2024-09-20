@@ -6,6 +6,7 @@ import ListOfPetsPage from "./pages/listofpets/ListOfPetsPage.tsx";
 import LoginPage from "./pages/login/LoginPage";
 import RegisterPage from "./pages/register/RegisterPage";
 import FavouritesPage from "./pages/favourites/FavouritesPage.tsx";
+import Cart from "./pages/cart/Cart.tsx";
 
 function App() {
   return (
@@ -19,7 +20,7 @@ function App() {
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/listofpets" element={<ListOfPetsPage />} />
             <Route path="/favourites" element={<FavouritesPage />} />
-            <Route path="/cart" element={<FavouritesPage />} />
+            <Route path="/cart" element={<Cart />} />
             {/* <Route path="/path2" element={<component2 />} />
           <Route exact path="/path3" element={<component3 />} /> */}
           </Routes>

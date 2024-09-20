@@ -10,14 +10,43 @@ export default function NavBar(): JSX.Element {
     const user = sessionStorage.getItem("user");
     if (user) {
       const parsedUser = JSON.parse(user);
-      setAdopterName(parsedUser.name); 
+      setAdopterName(parsedUser.name);
     }
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     sessionStorage.removeItem("user");
     setAdopterName(null);
     navigate("/login");
+
+    // const user: any = sessionStorage.getItem("user");
+    // const parsedUser = JSON.parse(user);
+    // const adopter_id = parsedUser.adopter_id;
+
+    // try {
+    //   const response = await fetch("http://127.0.0.1:5000/api/v1/logout", {
+    //     method: "POST",
+    //     headers: {
+    //       "Content-Type": "application/json",
+    //     },
+    //     body: JSON.stringify({
+    //       adopter_id: adopter_id,
+    //     }),
+    //   });
+
+    //   if (response.ok) {
+    //     sessionStorage.removeItem("user");
+    //     setAdopterName(null);
+    //     navigate("/login");
+    //   } else {
+    //     console.error("Failed to log out:", await response.json());
+    //   }
+    // } catch (error) {
+    //   console.error("Error during logout:", error);
+    // }
+    // // sessionStorage.removeItem("user");
+    // // setAdopterName(null);
+    // // navigate("/login");
   };
 
   return (

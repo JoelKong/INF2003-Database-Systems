@@ -9,9 +9,12 @@ export default function PetCard({
 
   // useEffect to check if pet is already favourited
   useEffect(() => {
-    const isAlreadyFavourite = favouritedPets && favouritedPets.length > 0
-      ? favouritedPets.some((favPet: any) => favPet.pet_id === petDetails.pet_id)
-      : false;
+    const isAlreadyFavourite =
+      favouritedPets && favouritedPets.length > 0
+        ? favouritedPets.some(
+            (favPet: any) => favPet.pet_id === petDetails.pet_id
+          )
+        : false;
     setIsFavourite(isAlreadyFavourite);
   }, [favouritedPets, petDetails]);
 
@@ -48,6 +51,27 @@ export default function PetCard({
       alert("An error occurred while adding to favourites.");
     }
   };
+
+  async function reservePet() {
+    const user: any = sessionStorage.getItem("user");
+    const response = await fetch("http://127.0.0.1:5000/api/v1/addtocart", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        pet_id: petDetails.pet_id,
+        adopter_id: JSON.parse(user).adopter_id,
+      }),
+    });
+
+    if (response.status === 200) {
+      alert(`${petDetails.name} has been added to cart.`);
+    } else {
+      const data = await response.json();
+      alert(data.error || `${petDetails.name} is already in your cart.`);
+    }
+  }
 
   return (
     <>
@@ -93,14 +117,19 @@ export default function PetCard({
           >
             View Pet Conditions
           </button>
-          <button className="bg-blue-500 text-white px-4 py-2 rounded-lg transition ease-in-out hover:scale-110 hover:bg-indigo-500 duration-300">
+          <button
+            className="bg-blue-500 text-white px-4 py-2 rounded-lg transition ease-in-out hover:scale-110 hover:bg-indigo-500 duration-300"
+            onClick={() => {
+              reservePet();
+            }}
+          >
             Reserve Pet
           </button>
           <button
             className={`${
               isFavourite ? "bg-gray-500" : "bg-red-500"
             } text-white px-4 py-2 rounded-lg transition ease-in-out hover:scale-110 hover:bg-indigo-500 duration-300`}
-            onClick={handleAddToFavourites}
+            onClick={() => handleAddToFavourites()}
             disabled={isFavourite}
           >
             {isFavourite ? "Added to Favourite" : "Add to Favourite"}
