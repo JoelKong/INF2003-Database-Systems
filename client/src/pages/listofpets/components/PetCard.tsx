@@ -7,7 +7,7 @@ export default function PetCard({
 }: any): JSX.Element {
   const [isFavourite, setIsFavourite] = useState<boolean>(false);
 
-  // useEffect to check if pet is already favourited
+  // useEffect to check if pet is already favourite
   useEffect(() => {
     const isAlreadyFavourite =
       favouritedPets && favouritedPets.length > 0

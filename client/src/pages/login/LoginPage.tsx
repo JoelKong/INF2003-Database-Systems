@@ -1,52 +1,55 @@
 /** @format */
 
 import NavBar from "../general/NavBar";
-import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
-import axios from "axios";
+import {Link, useNavigate} from "react-router-dom";
+import {useState} from "react";
 
 export default function LoginPage(): JSX.Element {
   const navigate = useNavigate();
-  const [name, setName] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleSubmit = async (e: any) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    handleLogin(username, password);
+  };
+
+  async function handleLogin(username: string, password: string) {
     try {
-      const response = await axios.post(
-        "http://127.0.0.1:5000/api/v1/login",
-        { name, password },
-        { withCredentials: true }
-      );
-      
-      // Check if the response was successful
-      if (response.status === 200) {
-        const { adopter_id, name } = response.data.user; // Extract user details from the response
-        
-        // Store user information in sessionStorage
-        sessionStorage.setItem("user", JSON.stringify({ adopter_id, name }));
-        
-        console.log("Login success: ", response.data);
-        
-        // Navigate to the list of pets page after successful login
-        navigate("/listofpets");
+      const response = await fetch("http://127.0.0.1:5000/api/v1/login", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({username, password}),
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
-    } catch (error: any) {
-      console.error(
-        "Login error:",
-        error.response ? error.response.data : error.message
-      );
-      // Show an error message to the user
+
+      const data = await response.json();
+
+      const {adopter_id, name} = data.user;
+      sessionStorage.setItem("user", JSON.stringify({adopter_id, name}));
+
+      console.log("Login success:", data);
+      navigate("/listofpets");
+
+    } catch (error) {
+      console.error("Login error:", error);
       alert("Login failed. Please check your credentials and try again.");
     }
-  };
-  
+  }
+
 
   return (
     <div className="w-screen h-screen">
-      <NavBar />
+      <NavBar/>
       <div className="w-full h-[calc(100%-64px)] flex justify-center items-center">
-        <div className="w-1/2 p-8 border-2 border-black rounded-lg bg-gradient-to-tr from-amber-600 to-orange-300 flex flex-col items-center">
+        <div
+          className="w-1/2 p-8 border-2 border-black rounded-lg bg-gradient-to-tr from-amber-600 to-orange-300 flex flex-col items-center">
           <h1 className="tracking-wide font-bold text-4xl text-gray-700 mb-6">
             Login
           </h1>
@@ -54,9 +57,9 @@ export default function LoginPage(): JSX.Element {
             <input
               className="w-full mb-4 p-2 rounded"
               type="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Email"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Username"
               required
             />
             <input

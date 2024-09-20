@@ -4,8 +4,6 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from mysql.connector import Error, connect
 from dotenv import load_dotenv
 import os
-import jwt
-import datetime
 
 # Load ur environment variables
 load_dotenv()
@@ -19,14 +17,15 @@ app.secret_key = "inf2002dbprojectpartone"
 def get_db_connection():
     try:
         conn = connect(host=os.getenv('HOST'),
-            database=os.getenv('DATABASENAME'),
-            user=os.getenv('DATABASEUSER'),
-            password=os.getenv('DATABASEPASSWORD'))
+                       database=os.getenv('DATABASENAME'),
+                       user=os.getenv('DATABASEUSER'),
+                       password=os.getenv('DATABASEPASSWORD'))
         print("Successfully connected to the database")
         return conn
     except Error as err:
         print(f"Error connecting to the database: {err}")
         return None
+
 
 @app.route('/api/v1')
 def index():
@@ -48,6 +47,11 @@ def index():
         if connection.is_connected():
             cursor.close()
             connection.close()
+
+
+"""
+--- Authentication Endpoints ---
+"""
 
 
 @app.route('/api/v1/register', methods=['POST'])
@@ -83,11 +87,11 @@ def register():
 @app.route('/api/v1/login', methods=['POST'])
 def login():
     data = request.json
-    name = data.get('name')
+    username = data.get('username')
     password = data.get('password')
 
-    if not name or not password:
-        return jsonify({"error": "Missing email or password"}), 400
+    if not username or not password:
+        return jsonify({"error": "Missing username or password"}), 400
 
     connection = get_db_connection()
     if connection is None:
@@ -95,7 +99,7 @@ def login():
 
     try:
         cursor = connection.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM Adoptor WHERE name = %s", (name,))
+        cursor.execute("SELECT * FROM Adoptor WHERE name = %s", (username,))
         user = cursor.fetchone()
 
         if user and check_password_hash(user['password'], password):
@@ -104,13 +108,14 @@ def login():
             return jsonify({"message": "Logged in successfully",
                             "user": {"adopter_id": user['adopter_id'], "name": user['name']}}), 200
         else:
-            return jsonify({"error": "Invalid name or password"}), 401
+            return jsonify({"error": "Invalid username or password"}), 401
     except Error as e:
         return jsonify({"error": str(e)}), 500
     finally:
         if connection.is_connected():
             cursor.close()
             connection.close()
+
 
 @app.route('/api/v1/check_session', methods=['GET'])
 def check_session():
@@ -126,14 +131,15 @@ def check_auth():
     return jsonify({'isAuthenticated': False}), 401
 
 
-# @app.route('/api/v1/logout')
-# def logout():
-#     session.pop('user_id', None)
-#     return jsonify({"message": "Logged out successfully"})
+"""
+--- Pets Endpoints ---
+"""
+
 
 @app.route('/api/v1/getpets', methods=['GET'])
 def get_all_pets():
     connection = get_db_connection()
+
     if connection is None:
         return jsonify({"error": "Database connection failed"}), 500
 
@@ -162,10 +168,10 @@ def get_all_pets():
 def filter_pets():
     data = request.json
 
-    filter_type = data.get('type') 
-    filter_value = data.get('value')  
-    gender = data.get('gender')  
-    health_condition = data.get('health_condition')  
+    filter_type = data.get('type')
+    filter_value = data.get('value')
+    gender = data.get('gender')
+    health_condition = data.get('health_condition')
     sterilisation_status = data.get('sterilisation_status')
 
     # Start building the query
@@ -175,7 +181,7 @@ def filter_pets():
     JOIN Pet_Condition ON Pet_Info.pet_condition_id = Pet_Condition.pet_condition_id
     WHERE 1=1  -- Placeholder to allow dynamic conditions
     """
-    
+
     params = []
 
     # Apply filters if they are provided
@@ -195,9 +201,9 @@ def filter_pets():
         query += " AND Pet_Condition.health_condition = %s"
         params.append(health_condition)
 
-
     # Filter by sterilisation status (0 or 1)
-    if sterilisation_status is not None and sterilisation_status in ["0", "1"]:  # Check explicitly for None, as 0 and 1 are valid
+    if sterilisation_status is not None and sterilisation_status in ["0",
+                                                                     "1"]:  # Check explicitly for None, as 0 and 1 are valid
         query += " AND Pet_Condition.sterilisation_status = %s"
         params.append(sterilisation_status)
 
@@ -207,7 +213,7 @@ def filter_pets():
 
     try:
         cursor = connection.cursor(dictionary=True)
-        
+
         # Execute the dynamically built query
         cursor.execute(query, params)
         pets = cursor.fetchall()
@@ -222,24 +228,21 @@ def filter_pets():
             cursor.close()
             connection.close()
 
+
 @app.route('/api/v1/addFavourite', methods=['POST'])
 def addFavourite():
-
-    # if 'user_id' not in session:
-    #     return jsonify({"error": "User not logged in"}), 401
-    
     data = request.json
     pet_id = data.get('pet_id')
-    
+
     if not pet_id:
         return jsonify({"error": "Pet ID is required"}), 400
-    
+
     adopter_id = data.get('adopter_id')
-    
+
     connection = get_db_connection()
     if connection is None:
         return jsonify({"error": "Database connection failed"}), 500
-    
+
     try:
         cursor = connection.cursor()
 
@@ -250,7 +253,7 @@ def addFavourite():
 
         #insert the favourite pet into the Favourites table
         cursor.execute(
-            "INSERT INTO Favourites (adopter_id, pet_id) VALUES (%s, %s)", 
+            "INSERT INTO Favourites (adopter_id, pet_id) VALUES (%s, %s)",
             (adopter_id, pet_id)
         )
         connection.commit()
@@ -265,11 +268,13 @@ def addFavourite():
             cursor.close()
             connection.close()
 
+
 @app.route('/api/v1/checkFavourite', methods=['GET'])
 def checkFavourite():
     # adopter_id = session.get('user_id')  # Fetch user ID from session
     data = request.json
     adopter_id = data.get('adopter_id')
+
 
 @app.route('/api/v1/getFavourites', methods=['GET'])
 def getFavourites():
@@ -301,6 +306,11 @@ def getFavourites():
         connection.close()
 
 
+"""
+--- Cart Endpoints ---
+"""
+
+
 @app.route('/api/v1/addtocart', methods=['POST'])
 def addToCart():
     data = request.json
@@ -310,7 +320,6 @@ def addToCart():
     if not adopter_id:
         return jsonify({"error": "User not logged in"}), 401  # User not logged in
 
-    
     connection = get_db_connection()
     if connection is None:
         return jsonify({"error": "Database connection failed"}), 500
@@ -320,9 +329,9 @@ def addToCart():
         cursor.execute("SELECT * FROM Cart WHERE adopter_id = %s AND pet_id = %s", (adopter_id, pet_id))
         if cursor.fetchone():
             return jsonify({"error": "Pet is already in cart"}), 400
-        
+
         cursor.execute(
-            "INSERT INTO Cart (adopter_id, pet_id) VALUES (%s, %s)", 
+            "INSERT INTO Cart (adopter_id, pet_id) VALUES (%s, %s)",
             (adopter_id, pet_id)
         )
         connection.commit()
@@ -344,7 +353,6 @@ def getCart():
     data = request.json
     adopter_id = data.get('adopter_id')
 
-    
     connection = get_db_connection()
     if connection is None:
         return jsonify({"error": "Database connection failed"}), 500
@@ -370,6 +378,7 @@ def getCart():
             cursor.close()
             connection.close()
 
+
 @app.route('/api/v1/removefromcart', methods=['POST'])
 def removeFromCart():
     data = request.json
@@ -394,7 +403,6 @@ def removeFromCart():
 
         connection.commit()
 
-
         return jsonify("Success"), 200
 
     except Error as e:
@@ -405,6 +413,7 @@ def removeFromCart():
         if connection.is_connected():
             cursor.close()
             connection.close()
+
 
 @app.route('/api/v1/confirmreservation', methods=['POST'])
 def confirmReservation():
@@ -427,7 +436,7 @@ def confirmReservation():
             pet_id = item.get('pet_id')
 
             cursor.execute(
-                "INSERT INTO Orders (cart_id, adopter_id, pet_id) VALUES (%s, %s, %s)", 
+                "INSERT INTO Orders (cart_id, adopter_id, pet_id) VALUES (%s, %s, %s)",
                 (cart_id, adopter_id, pet_id)
             )
 
@@ -452,6 +461,10 @@ def confirmReservation():
             cursor.close()
             connection.close()
 
+
+"""
+--- Admin Endpoints ---
+"""
 
 
 if __name__ == '__main__':
