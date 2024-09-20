@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
 
 export default function PetCard({
   petDetails,
@@ -25,23 +24,31 @@ export default function PetCard({
     }
 
     try {
-      const response = await axios.post(
+      const response = await fetch(
         "http://127.0.0.1:5000/api/v1/addFavourite",
-        { pet_id: petDetails.pet_id }, // Send pet_id to the backend
-        { withCredentials: true } // Ensure session cookies are sent
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ pet_id: petDetails.pet_id }),
+          credentials: "include", // Ensure session cookies are sent
+        }
       );
 
       if (response.status === 201) {
         setIsFavourite(true);
         alert(`${petDetails.name} has been added to your favourites.`);
       } else {
-        alert(response.data.error || "Failed to add to favourites.");
+        const data = await response.json();
+        alert(data.error || "Failed to add to favourites.");
       }
     } catch (error) {
       console.error("Error adding pet to favourites:", error);
       alert("An error occurred while adding to favourites.");
     }
   };
+
   return (
     <>
       <article className="w-96 h-full border-2 rounded-lg shadow-xl mb-4">
