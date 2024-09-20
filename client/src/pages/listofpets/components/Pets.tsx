@@ -4,6 +4,7 @@ import PetCard from "./PetCard";
 
 export default function Pets(): JSX.Element {
   const [pets, setPets] = useState<any>([]);
+  const [favouritedPets, setFavouritedPets] = useState<any>([]);
   const [searchedValue, setSearchedValue] = useState<any>({
     value: "",
     type: "name",
@@ -32,6 +33,18 @@ export default function Pets(): JSX.Element {
     }
   }
 
+  async function getFavourites() {
+    try {
+      const response = await fetch("http://127.0.0.1:5000/api/v1/getFavourites", {
+        credentials: "include"
+      });
+      const data = await response.json();
+      setFavouritedPets(data);
+    } catch (error) {
+      console.error("Error fetching pets:", error);
+    }
+  }
+
   async function filterPets(e: any) {
     e.preventDefault();
     try {
@@ -52,8 +65,13 @@ export default function Pets(): JSX.Element {
 
   useEffect(() => {
     getPets();
-    console.log(pets);
+    // console.log(pets);
+    getFavourites();
+    // console.log("favourited pets: ", favouritedPets);
   }, []);
+
+  console.log("pets: ", pets);
+  console.log("favourited pets: ", favouritedPets);
 
   return (
     <section className="w-screen h-screen flex justify-center items-center text-gray-700">
@@ -227,6 +245,7 @@ export default function Pets(): JSX.Element {
                 <PetCard
                   petDetails={pet}
                   setTogglePetConditions={setTogglePetConditions}
+                  favouritedPets={favouritedPets}
                   key={pet.pet_id}
                 />
               );

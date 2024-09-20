@@ -1,11 +1,11 @@
 /** @format */
 
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Home from "./pages/home/Home";
-import ListOfPets from "./pages/listofpets/ListOfPets";
+import HomePage from "./pages/home/HomePage";
+import ListOfPetsPage from "./pages/listofpets/ListOfPetsPage.tsx";
 import LoginPage from "./pages/login/LoginPage";
 import RegisterPage from "./pages/register/RegisterPage";
-import Favourites from "./pages/favourites/Favourites";
+import FavouritesPage from "./pages/favourites/FavouritesPage.tsx";
 
 function App() {
   return (
@@ -14,12 +14,12 @@ function App() {
       <main className="relative z-20">
         <Router>
           <Routes>
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={<HomePage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
-            <Route path="/listofpets" element={<ListOfPets />} />
-            <Route path="/favourites" element={<Favourites />} />
-            <Route path="/cart" element={<Favourites />} />
+            <Route path="/listofpets" element={<ListOfPetsPage />} />
+            <Route path="/favourites" element={<FavouritesPage />} />
+            <Route path="/cart" element={<FavouritesPage />} />
             {/* <Route path="/path2" element={<component2 />} />
           <Route exact path="/path3" element={<component3 />} /> */}
           </Routes>

@@ -4,33 +4,17 @@ import axios from "axios";
 export default function PetCard({
   petDetails,
   setTogglePetConditions,
+  favouritedPets,
 }: any): JSX.Element {
   const [isFavourite, setIsFavourite] = useState<boolean>(false);
 
-  // Check if the pet is already in the favourites (server-side check)
+  // useEffect to check if pet is already favourited
   useEffect(() => {
-    const user = sessionStorage.getItem("user");
-    if (user) {
-      // Make a request to the backend to check if the pet is in the user's favourites
-      const fetchFavourites = async () => {
-        try {
-          const response = await axios.get(
-            `http://127.0.0.1:5000/api/v1/checkFavourite?pet_id=${petDetails.pet_id}`,
-            { withCredentials: true } // Ensure cookies/session is included
-          );
-
-          // If the pet is already in favourites, mark it as favourite
-          if (response.data.isFavourite) {
-            setIsFavourite(true);
-          }
-        } catch (error) {
-          console.error("Error checking favourites:", error);
-        }
-      };
-
-      fetchFavourites();
-    }
-  }, [petDetails]);
+    const isAlreadyFavourite = favouritedPets.some(
+      (favPet: any) => favPet.pet_id === petDetails.pet_id
+    );
+    setIsFavourite(isAlreadyFavourite);
+  }, [favouritedPets, petDetails]);
 
   // Function to handle adding the pet to favourites
   const handleAddToFavourites = async () => {
