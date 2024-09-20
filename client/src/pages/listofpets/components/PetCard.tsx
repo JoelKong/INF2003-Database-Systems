@@ -11,16 +11,25 @@ export default function PetCard({
   useEffect(() => {
     const user = sessionStorage.getItem("user");
     if (user) {
+      const parsedUser = JSON.parse(user);
       // Make a request to the backend to check if the pet is in the user's favourites
       const fetchFavourites = async () => {
         try {
-          const response = await axios.get(
+          const response = await fetch(
             `http://127.0.0.1:5000/api/v1/checkFavourite?pet_id=${petDetails.pet_id}`,
-            { withCredentials: true } // Ensure cookies/session is included
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(parsedUser.adopter_id),
+            }
           );
 
+          const data = await response.json();
+
           // If the pet is already in favourites, mark it as favourite
-          if (response.data.isFavourite) {
+          if (data.isFavourite) {
             setIsFavourite(true);
           }
         } catch (error) {
@@ -31,6 +40,23 @@ export default function PetCard({
       fetchFavourites();
     }
   }, [petDetails]);
+
+  async function reservePet() {
+    const user: any = sessionStorage.getItem("user");
+    const response = await axios.post(
+      "http://127.0.0.1:5000/api/v1/addtocart",
+      { pet_id: petDetails.pet_id, adopter_id: JSON.parse(user).adopter_id }, // Send pet_id to the backend
+      { withCredentials: true } // Ensure session cookies are sent
+    );
+
+    if (response.status === 200) {
+      alert(`${petDetails.name} has been added to cart.`);
+    } else {
+      alert(
+        response.data.error || `${petDetails.name} is already in your cart.`
+      );
+    }
+  }
 
   // Function to handle adding the pet to favourites
   const handleAddToFavourites = async () => {
@@ -43,7 +69,7 @@ export default function PetCard({
     try {
       const response = await axios.post(
         "http://127.0.0.1:5000/api/v1/addFavourite",
-        { pet_id: petDetails.pet_id }, // Send pet_id to the backend
+        { pet_id: petDetails.pet_id, adopter_id: JSON.parse(user).adopter_id }, // Send pet_id to the backend
         { withCredentials: true } // Ensure session cookies are sent
       );
 
@@ -102,14 +128,19 @@ export default function PetCard({
           >
             View Pet Conditions
           </button>
-          <button className="bg-blue-500 text-white px-4 py-2 rounded-lg transition ease-in-out hover:scale-110 hover:bg-indigo-500 duration-300">
+          <button
+            className="bg-blue-500 text-white px-4 py-2 rounded-lg transition ease-in-out hover:scale-110 hover:bg-indigo-500 duration-300"
+            onClick={() => {
+              reservePet();
+            }}
+          >
             Reserve Pet
           </button>
           <button
             className={`${
               isFavourite ? "bg-gray-500" : "bg-red-500"
             } text-white px-4 py-2 rounded-lg transition ease-in-out hover:scale-110 hover:bg-indigo-500 duration-300`}
-            onClick={handleAddToFavourites}
+            onClick={() => handleAddToFavourites()}
             disabled={isFavourite}
           >
             {isFavourite ? "Added to Favourite" : "Add to Favourite"}

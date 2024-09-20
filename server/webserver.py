@@ -4,6 +4,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from mysql.connector import Error, connect
 from dotenv import load_dotenv
 import os
+import jwt
+import datetime
 
 # Load ur environment variables
 load_dotenv()
@@ -97,7 +99,8 @@ def login():
         user = cursor.fetchone()
 
         if user and check_password_hash(user['password'], password):
-            session['user_id'] = user['adopter_id']
+            # session['user_id'] = user['adopter_id']
+
             return jsonify({"message": "Logged in successfully",
                             "user": {"adopter_id": user['adopter_id'], "name": user['name']}}), 200
         else:
@@ -108,7 +111,6 @@ def login():
         if connection.is_connected():
             cursor.close()
             connection.close()
-
 
 @app.route('/api/v1/check_session', methods=['GET'])
 def check_session():
@@ -124,10 +126,10 @@ def check_auth():
     return jsonify({'isAuthenticated': False}), 401
 
 
-@app.route('/api/v1/logout')
-def logout():
-    session.pop('user_id', None)
-    return jsonify({"message": "Logged out successfully"})
+# @app.route('/api/v1/logout')
+# def logout():
+#     session.pop('user_id', None)
+#     return jsonify({"message": "Logged out successfully"})
 
 @app.route('/api/v1/getpets', methods=['GET'])
 def get_all_pets():
@@ -223,8 +225,8 @@ def filter_pets():
 @app.route('/api/v1/addFavourite', methods=['POST'])
 def addFavourite():
 
-    if 'user_id' not in session:
-        return jsonify({"error": "User not logged in"}), 401
+    # if 'user_id' not in session:
+    #     return jsonify({"error": "User not logged in"}), 401
     
     data = request.json
     pet_id = data.get('pet_id')
@@ -232,7 +234,7 @@ def addFavourite():
     if not pet_id:
         return jsonify({"error": "Pet ID is required"}), 400
     
-    adopter_id = session['user_id'] 
+    adopter_id = data.get('adopter_id')
     
     connection = get_db_connection()
     if connection is None:
@@ -265,7 +267,9 @@ def addFavourite():
 
 @app.route('/api/v1/checkFavourite', methods=['GET'])
 def checkFavourite():
-    adopter_id = session.get('user_id')  # Fetch user ID from session
+    # adopter_id = session.get('user_id')  # Fetch user ID from session
+    data = request.json
+    adopter_id = data.get('adopter_id')
 
     if not adopter_id:
         return jsonify({"error": "User not logged in"}), 401  # User not logged in
@@ -293,6 +297,45 @@ def checkFavourite():
         if connection.is_connected():
             cursor.close()
             connection.close()
+
+
+@app.route('/api/v1/addtocart', methods=['POST'])
+def addToCart():
+    data = request.json
+    adopter_id = data.get('adopter_id')
+    pet_id = data.get('pet_id')
+
+    if not adopter_id:
+        return jsonify({"error": "User not logged in"}), 401  # User not logged in
+
+    
+    connection = get_db_connection()
+    if connection is None:
+        return jsonify({"error": "Database connection failed"}), 500
+
+    try:
+        cursor = connection.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM Cart WHERE adopter_id = %s AND pet_id = %s", (adopter_id, pet_id))
+        if cursor.fetchone():
+            return jsonify({"error": "Pet is already in cart"}), 400
+        
+        cursor.execute(
+            "INSERT INTO Cart (adopter_id, pet_id) VALUES (%s, %s)", 
+            (adopter_id, pet_id)
+        )
+        connection.commit()
+
+        return jsonify(pet_id), 200
+
+    except Error as e:
+        print(e)
+        return jsonify({"error": str(e)}), 500
+
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+
 
 
 
