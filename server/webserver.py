@@ -352,8 +352,9 @@ def getCart():
     try:
         cursor = connection.cursor(dictionary=True)
         cursor.execute("""
-            SELECT * FROM pets.Pet_Info 
+            SELECT Pet_Info.*, Cart.cart_id FROM pets.Pet_Info
             JOIN pets.Pet_Condition ON pets.Pet_Info.pet_condition_id = pets.Pet_Condition.pet_condition_id 
+            JOIN Cart ON Pet_Info.pet_id = Cart.pet_id
             WHERE pets.Pet_Info.pet_id IN (SELECT pet_id FROM Cart WHERE adopter_id = %s)
         """, (adopter_id,))
         cart = cursor.fetchall()
@@ -404,6 +405,53 @@ def removeFromCart():
         if connection.is_connected():
             cursor.close()
             connection.close()
+
+@app.route('/api/v1/confirmreservation', methods=['POST'])
+def confirmReservation():
+    data = request.json
+    adopter_id = data.get('adopter_id')
+    cart = data.get('cart')
+
+    if not adopter_id or not cart:
+        return jsonify({"error": "Missing adopter_id or cart"}), 400
+
+    connection = get_db_connection()
+    if connection is None:
+        return jsonify({"error": "Database connection failed"}), 500
+
+    try:
+        cursor = connection.cursor()
+
+        for item in cart:
+            cart_id = item.get('cart_id')
+            pet_id = item.get('pet_id')
+
+            cursor.execute(
+                "INSERT INTO Orders (cart_id, adopter_id, pet_id) VALUES (%s, %s, %s)", 
+                (cart_id, adopter_id, pet_id)
+            )
+
+        connection.commit()
+
+        # Delete all pets from the cart
+        cursor.execute("""
+            DELETE FROM Cart 
+            WHERE adopter_id = %s
+        """, (adopter_id,))
+
+        connection.commit()
+
+        return jsonify("Success"), 200
+
+    except Error as e:
+        print(e)
+        return jsonify({"error": str(e)}), 500
+
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+
 
 
 if __name__ == '__main__':

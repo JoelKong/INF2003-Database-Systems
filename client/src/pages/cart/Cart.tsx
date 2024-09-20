@@ -1,8 +1,10 @@
 import NavBar from "../general/NavBar";
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function Cart(): JSX.Element {
   const [cart, setCart] = useState<any>([]);
+  const navigate = useNavigate();
   const [togglePetConditions, setTogglePetConditions] = useState<any>({
     toggle: false,
     data: {},
@@ -26,7 +28,6 @@ export default function Cart(): JSX.Element {
   }
 
   async function removeFromCart(pet_id: any) {
-    console.log(pet_id);
     const user: any = sessionStorage.getItem("user");
     const adopter_id = JSON.parse(user).adopter_id;
     const response = await fetch(
@@ -109,6 +110,16 @@ export default function Cart(): JSX.Element {
             <h1 className="font-bold text-2xl border-b-4 border-gray-700 text-center">
               Cart
             </h1>
+            {cart.length > 0 && (
+              <button
+                className="absolute right-0 bg-blue-500 text-white px-4 py-2 rounded-lg transition ease-in-out hover:scale-110 hover:bg-indigo-500 duration-300"
+                onClick={() => {
+                  navigate("/checkout", { state: { cart } });
+                }}
+              >
+                Confirm reservation
+              </button>
+            )}
           </div>
           <div className="w-full mt-4 pl-6 pr-6 h-full flex flex-row flex-wrap justify-evenly overflow-y-scroll overflow-x-hidden">
             {cart.length > 0 ? (
