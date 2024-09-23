@@ -47,11 +47,7 @@ export default function FavouritesPage(): JSX.Element {
                 key={pet.pet_id}
                 petDetails={pet}
                 setTogglePetConditions={() => {
-<<<<<<< Updated upstream
                 }}
-=======
-                }} 
->>>>>>> Stashed changes
               />
             ))
           ) : (
