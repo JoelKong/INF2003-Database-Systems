@@ -1,5 +1,5 @@
 import NavBar from "../general/NavBar";
-import { useEffect, useState } from "react";
+import {useEffect, useState} from "react";
 import PetCard from "../listofpets/components/PetCard";
 import Loader from "../general/Loader.tsx"
 
@@ -14,12 +14,14 @@ export default function FavouritesPage(): JSX.Element {
   async function getFavourites() {
     setLoading(true);
     try {
-      const response = await fetch(
-        "http://127.0.0.1:5000/api/v1/getFavourites",
-        {
-          credentials: "include",
+      const user = JSON.parse(sessionStorage.getItem("user"));
+      console.log(user);
+      const response = await fetch(`http://127.0.0.1:5000/api/v1/getFavourites?adopter_id=${user.adopter_id}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
         }
-      );
+      });
       const data = await response.json();
       setFavouritedPets(data);
     } catch (error) {
@@ -33,9 +35,9 @@ export default function FavouritesPage(): JSX.Element {
 
   return (
     <div className="h-screen w-screen">
-      <NavBar />
+      <NavBar/>
 
-      {loading && <Loader message="Fetching your favourite pets..." />}
+      {loading && <Loader message="Fetching your favourite pets..."/>}
 
       <div className="pt-16">
         <h1 className="text-2xl font-bold mb-4">Your Favourite Pets</h1>
@@ -46,7 +48,8 @@ export default function FavouritesPage(): JSX.Element {
               <PetCard
                 key={pet.pet_id}
                 petDetails={pet}
-                setTogglePetConditions={() => {}} // If you need to handle conditions
+                setTogglePetConditions={() => {
+                }} // If you need to handle conditions
               />
             ))
           ) : (

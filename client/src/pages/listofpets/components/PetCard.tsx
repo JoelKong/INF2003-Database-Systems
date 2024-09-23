@@ -26,8 +26,6 @@ export default function PetCard({
       return;
     }
 
-    console.log("user: ", user)
-
     try {
       const response = await fetch(
         "http://127.0.0.1:5000/api/v1/addFavourite",
@@ -37,7 +35,6 @@ export default function PetCard({
             "Content-Type": "application/json",
           },
           body: JSON.stringify({ pet_id: petDetails.pet_id, adopter_id: user.adopter_id }),
-          credentials: "include", // Ensure session cookies are sent
         }
       );
 

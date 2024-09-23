@@ -32,6 +32,7 @@ export default function LoginPage(): JSX.Element {
       const data = await response.json();
 
       const {adopter_id, name} = data.user;
+
       sessionStorage.setItem("user", JSON.stringify({adopter_id, name}));
 
       console.log("Login success:", data);

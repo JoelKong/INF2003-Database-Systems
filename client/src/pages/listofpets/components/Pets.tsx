@@ -41,8 +41,14 @@ export default function Pets(): JSX.Element {
   async function getFavourites() {
     setLoading(true);
     try {
-      const response = await fetch("http://127.0.0.1:5000/api/v1/getFavourites", {
-        credentials: "include"
+      const user = JSON.parse(sessionStorage.getItem("user"));
+      console.log(user);
+      // Append adopter_id as a query parameter
+      const response = await fetch(`http://127.0.0.1:5000/api/v1/getFavourites?adopter_id=${user.adopter_id}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        }
       });
       const data = await response.json();
       setFavouritedPets(data);
@@ -252,7 +258,7 @@ export default function Pets(): JSX.Element {
         >
           {pets.length > 0 ? (
             pets.map((pet: any) => {
-              console.log(pets.breed);
+              // console.log(pets.breed);
               return (
                 <PetCard
                   petDetails={pet}

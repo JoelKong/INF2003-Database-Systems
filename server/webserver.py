@@ -117,18 +117,18 @@ def login():
             connection.close()
 
 
-@app.route('/api/v1/check_session', methods=['GET'])
-def check_session():
-    if 'user_id' in session:
-        return jsonify({"message": f"Session user_id: {session['user_id']}"})
-    return jsonify({"error": "No session found"}), 401
+# @app.route('/api/v1/check_session', methods=['GET'])
+# def check_session():
+#     if 'user_id' in session:
+#         return jsonify({"message": f"Session user_id: {session['user_id']}"})
+#     return jsonify({"error": "No session found"}), 401
 
 
-@app.route('/api/v1/check_auth')
-def check_auth():
-    if 'user_id' in session:
-        return jsonify({'isAuthenticated': True}), 200
-    return jsonify({'isAuthenticated': False}), 401
+# @app.route('/api/v1/check_auth')
+# def check_auth():
+#     if 'user_id' in session:
+#         return jsonify({'isAuthenticated': True}), 200
+#     return jsonify({'isAuthenticated': False}), 401
 
 
 """
@@ -278,10 +278,9 @@ def checkFavourite():
 
 @app.route('/api/v1/getFavourites', methods=['GET'])
 def getFavourites():
-    try:
-        adopter_id = session['user_id']
-    except KeyError:
-        return jsonify({"error": "User not logged in"}), 401
+    adopter_id = request.args.get('adopter_id')  # Get adopter_id from query parameters
+    if not adopter_id:
+        return jsonify({"error": "adopter_id is required"}), 400
 
     connection = get_db_connection()
     cursor = connection.cursor(dictionary=True)
@@ -304,6 +303,7 @@ def getFavourites():
     finally:
         cursor.close()
         connection.close()
+
 
 
 """
