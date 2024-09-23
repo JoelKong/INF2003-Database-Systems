@@ -20,11 +20,13 @@ export default function PetCard({
 
   // Function to handle adding the pet to favourites
   const handleAddToFavourites = async () => {
-    const user = sessionStorage.getItem("user");
+    const user = JSON.parse(sessionStorage.getItem("user"));
     if (!user) {
       alert("You need to log in to add pets to favourites.");
       return;
     }
+
+    console.log("user: ", user)
 
     try {
       const response = await fetch(
@@ -34,7 +36,7 @@ export default function PetCard({
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ pet_id: petDetails.pet_id }),
+          body: JSON.stringify({ pet_id: petDetails.pet_id, adopter_id: user.adopter_id }),
           credentials: "include", // Ensure session cookies are sent
         }
       );
