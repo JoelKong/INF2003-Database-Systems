@@ -57,7 +57,6 @@ def index():
 @app.route('/api/v1/register', methods=['POST'])
 def register():
     data = request.json
-    # email = data.get('email')
     name = data.get('name')
     password = data.get('password')
 
@@ -103,8 +102,6 @@ def login():
         user = cursor.fetchone()
 
         if user and check_password_hash(user['password'], password):
-            # session['user_id'] = user['adopter_id']
-
             return jsonify({"message": "Logged in successfully",
                             "user": {"adopter_id": user['adopter_id'], "name": user['name']}}), 200
         else:
@@ -115,20 +112,6 @@ def login():
         if connection.is_connected():
             cursor.close()
             connection.close()
-
-
-# @app.route('/api/v1/check_session', methods=['GET'])
-# def check_session():
-#     if 'user_id' in session:
-#         return jsonify({"message": f"Session user_id: {session['user_id']}"})
-#     return jsonify({"error": "No session found"}), 401
-
-
-# @app.route('/api/v1/check_auth')
-# def check_auth():
-#     if 'user_id' in session:
-#         return jsonify({'isAuthenticated': True}), 200
-#     return jsonify({'isAuthenticated': False}), 401
 
 
 """
@@ -246,12 +229,12 @@ def addFavourite():
     try:
         cursor = connection.cursor()
 
-        #check if the pet is already in the adopter's favourites
+        # check if the pet is already in the adopter's favourites
         cursor.execute("SELECT * FROM Favourites WHERE adopter_id = %s AND pet_id = %s", (adopter_id, pet_id))
         if cursor.fetchone():
             return jsonify({"error": "Pet is already in favourites"}), 400
 
-        #insert the favourite pet into the Favourites table
+        # insert the favourite pet into the Favourites table
         cursor.execute(
             "INSERT INTO Favourites (adopter_id, pet_id) VALUES (%s, %s)",
             (adopter_id, pet_id)
@@ -269,16 +252,9 @@ def addFavourite():
             connection.close()
 
 
-@app.route('/api/v1/checkFavourite', methods=['GET'])
-def checkFavourite():
-    # adopter_id = session.get('user_id')  # Fetch user ID from session
-    data = request.json
-    adopter_id = data.get('adopter_id')
-
-
 @app.route('/api/v1/getFavourites', methods=['GET'])
 def getFavourites():
-    adopter_id = request.args.get('adopter_id')  # Get adopter_id from query parameters
+    adopter_id = request.args.get('adopter_id')
     if not adopter_id:
         return jsonify({"error": "adopter_id is required"}), 400
 
@@ -303,7 +279,6 @@ def getFavourites():
     finally:
         cursor.close()
         connection.close()
-
 
 
 """
@@ -465,7 +440,6 @@ def confirmReservation():
 """
 --- Admin Endpoints ---
 """
-
 
 if __name__ == '__main__':
     app.run(debug=True)

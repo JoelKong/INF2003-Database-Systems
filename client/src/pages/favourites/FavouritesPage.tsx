@@ -31,8 +31,6 @@ export default function FavouritesPage(): JSX.Element {
     }
   }
 
-  console.log(favouritedPets);
-
   return (
     <div className="h-screen w-screen">
       <NavBar/>
@@ -49,7 +47,7 @@ export default function FavouritesPage(): JSX.Element {
                 key={pet.pet_id}
                 petDetails={pet}
                 setTogglePetConditions={() => {
-                }} // If you need to handle conditions
+                }}
               />
             ))
           ) : (
