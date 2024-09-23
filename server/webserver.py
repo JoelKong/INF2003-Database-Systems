@@ -118,6 +118,35 @@ def login():
 --- Pets Endpoints ---
 """
 
+@app.route('/api/v1/getTop3', methods=['GET'])
+def get_Top3():
+    connection = get_db_connection()
+
+    if connection is None:
+        return jsonify({"error": "Database connection failed"}), 500
+
+    try:
+        cursor = connection.cursor(dictionary=True)
+        query = """
+        SELECT pi.*, COUNT(f.favourite_id) AS favourite_count
+        FROM Favourites f
+        JOIN Pet_Info pi ON f.pet_id = pi.pet_id
+        GROUP BY pi.pet_id
+        ORDER BY favourite_count DESC
+        LIMIT 3;
+        """
+        cursor.execute(query)
+        top3pets = cursor.fetchall()
+
+        return jsonify(top3pets), 200
+
+    except Error as e:
+        return jsonify({"error": str(e)}), 500
+
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
 
 @app.route('/api/v1/getpets', methods=['GET'])
 def get_all_pets():

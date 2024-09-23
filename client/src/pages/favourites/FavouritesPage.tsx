@@ -20,7 +20,7 @@ export default function FavouritesPage(): JSX.Element {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-        }
+        } 
       });
       const data = await response.json();
       setFavouritedPets(data);
@@ -37,17 +37,21 @@ export default function FavouritesPage(): JSX.Element {
 
       {loading && <Loader message="Fetching your favourite pets..."/>}
 
-      <div className="pt-16">
+      <div className="bg-white border border-gray-300 rounded-lg shadow-lg p-8">
         <h1 className="text-2xl font-bold mb-4">Your Favourite Pets</h1>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {favouritedPets.length > 0 ? (
             favouritedPets.map((pet) => (
               <PetCard
                 key={pet.pet_id}
                 petDetails={pet}
                 setTogglePetConditions={() => {
+<<<<<<< Updated upstream
                 }}
+=======
+                }} 
+>>>>>>> Stashed changes
               />
             ))
           ) : (
