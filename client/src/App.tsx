@@ -8,6 +8,7 @@ import RegisterPage from "./pages/register/RegisterPage";
 import FavouritesPage from "./pages/favourites/FavouritesPage.tsx";
 import Cart from "./pages/cart/Cart.tsx";
 import Checkout from "./pages/checkout/Checkout.tsx";
+import AdminRegisterPage from "./pages/admin_register/AdminRegisterPage.tsx";
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
             <Route path="/favourites" element={<FavouritesPage/>}/>
             <Route path="/cart" element={<Cart/>}/>
             <Route path="/checkout" element={<Checkout/>}/>
+            <Route path="/adminregister" element={<AdminRegisterPage />} />
           </Routes>
         </Router>
       </main>

@@ -441,5 +441,38 @@ def confirmReservation():
 --- Admin Endpoints ---
 """
 
+# Admin Registration (TO BE REMOVED)
+@app.route('/api/v1/admin/register', methods=['POST'])
+def admin_register():
+    data = request.json
+    username = data.get('username')
+    password = data.get('password')
+
+    print(username, password)
+
+    if not username or not password:
+        return jsonify({"error": "Missing username or password"}), 400
+
+    hashed_password = generate_password_hash(password)
+
+    connection = get_db_connection()
+    if connection is None:
+        return jsonify({"error": "Database connection failed"}), 500
+
+    try:
+        cursor = connection.cursor()
+        cursor.execute("INSERT INTO Admin (username, password) VALUES (%s, %s)", (username, hashed_password))
+        connection.commit()
+        return jsonify({"message": "Admin Registered"}), 201
+    except Error as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+
+
+
+
 if __name__ == '__main__':
     app.run(debug=True)
