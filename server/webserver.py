@@ -501,6 +501,43 @@ def admin_register():
             connection.close()
 
 
+@app.route('/api/v1/admin/login', methods=['POST'])
+def admin_login():
+    data = request.json
+    username = data.get('username')
+    password = data.get('password')
+
+    if not username or not password:
+        return jsonify({"error": "Missing username or password"}), 400
+
+    connection = get_db_connection()
+    if connection is None:
+        return jsonify({"error": "Database connection failed"}), 500
+
+    try:
+        cursor = connection.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM Admin WHERE username = %s", (username,))
+        user = cursor.fetchone()
+
+        if user and check_password_hash(user.get('password'), password):
+            return jsonify(
+                {
+                    "message": "Login Successful",
+                    "user": {
+                        "admin_id": user["admin_id"],
+                        "username": user["username"],
+                    }
+                }
+            ), 200
+        else:
+            return jsonify({"error": "Invalid username or password"}), 401
+    except Error as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+
 
 
 if __name__ == '__main__':

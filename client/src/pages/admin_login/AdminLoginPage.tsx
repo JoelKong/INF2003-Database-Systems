@@ -1,11 +1,13 @@
 import React, {useState} from "react";
+import {useNavigate} from "react-router-dom";
 
-// TODO - PAGE TO BE REMOVED BEFORE SUBMITTING. SHOULDN'T BE ABLE TO ADD AN ADMIN USER FROM HERE
-function AdminRegisterPage() {
+function AdminLoginPage() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
+
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
@@ -19,7 +21,7 @@ function AdminRegisterPage() {
     }
 
     try {
-      const response = await fetch('http://127.0.0.1:5000/api/v1/admin/register', {
+      const response = await fetch('http://127.0.0.1:5000/api/v1/admin/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -28,17 +30,32 @@ function AdminRegisterPage() {
       });
 
       const data = await response.json();
-      setMessage(data.message);
-      setUsername('');
-      setPassword('');
+
+      if (response.ok) {
+        setMessage(data.message);
+        console.log(data);
+
+        // store user data inside session storage
+        sessionStorage.setItem('user', JSON.stringify({
+          admin_id: data.user.admin_id,
+          username: data.user.username
+        }));
+
+        setUsername("");
+        setMessage("");
+
+        navigate('/admin');
+      } else {
+        setError(data.error || 'Login failed');
+      }
     } catch (err) {
-      setError(err.response?.data?.error || 'got error happen during registration');
+      setError(err.response?.data?.error || 'got error happen during login');
     }
   };
 
   return (
-    <div className="admin-register">
-      <h2>Admin Registration</h2>
+    <div className="admin-login">
+      <h2>Admin Login</h2>
       <form onSubmit={handleSubmit}>
         <div>
           <label htmlFor="username">Username:</label>
@@ -60,7 +77,7 @@ function AdminRegisterPage() {
             required
           />
         </div>
-        <button type="submit">Register</button>
+        <button type="submit">Login</button>
       </form>
       {message && <p className="success-message">{message}</p>}
       {error && <p className="error-message">{error}</p>}
@@ -68,4 +85,4 @@ function AdminRegisterPage() {
   )
 }
 
-export default AdminRegisterPage;
+export default AdminLoginPage;

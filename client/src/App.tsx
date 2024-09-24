@@ -8,14 +8,16 @@ import RegisterPage from "./pages/register/RegisterPage";
 import FavouritesPage from "./pages/favourites/FavouritesPage.tsx";
 import Cart from "./pages/cart/Cart.tsx";
 import Checkout from "./pages/checkout/Checkout.tsx";
+import AdminLoginPage from "./pages/admin_login/AdminLoginPage.tsx";
+import AdminPage from "./pages/admin/AdminPage.tsx";
 import AdminRegisterPage from "./pages/admin_register/AdminRegisterPage.tsx";
+import BackgroundWrapper from "./pages/general/BackgroundWrapper.tsx";
 
 function App() {
   return (
     <>
-      <div className="fixed h-screen w-screen bg-home-bg bg-contain bg-center z-10"></div>
-      <main className="relative z-20">
-        <Router>
+      <Router>
+        <BackgroundWrapper>
           <Routes>
             <Route path="/" element={<HomePage/>}/>
             <Route path="/login" element={<LoginPage/>}/>
@@ -24,10 +26,12 @@ function App() {
             <Route path="/favourites" element={<FavouritesPage/>}/>
             <Route path="/cart" element={<Cart/>}/>
             <Route path="/checkout" element={<Checkout/>}/>
-            <Route path="/adminregister" element={<AdminRegisterPage />} />
+            <Route path="/adminregister" element={<AdminRegisterPage/>}/>
+            <Route path="/admin/login" element={<AdminLoginPage/>}/>
+            <Route path="/admin" element={<AdminPage/>}/>
           </Routes>
-        </Router>
-      </main>
+        </BackgroundWrapper>
+      </Router>
     </>
   );
 }
