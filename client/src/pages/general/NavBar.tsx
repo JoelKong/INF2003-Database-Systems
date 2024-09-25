@@ -5,12 +5,14 @@ import { BsCartFill } from "react-icons/bs";
 export default function NavBar(): JSX.Element {
   const navigate = useNavigate();
   const [adopterName, setAdopterName] = useState<string | null>(null);
+  const [role, setRole] = useState("");
 
   useEffect(() => {
     const user = sessionStorage.getItem("user");
     if (user) {
       const parsedUser = JSON.parse(user);
       setAdopterName(parsedUser.name);
+      setRole(parsedUser.role);
     }
   }, []);
 
@@ -21,7 +23,7 @@ export default function NavBar(): JSX.Element {
   };
 
   return (
-    <nav className="fixed w-full bg-white shadow-lg">
+    <nav className="w-full bg-white shadow-lg">
       <div className="mx-auto px-4">
         <div className="flex justify-between items-center h-16">
           <Link className="flex-shrink-0 h-28 w-28" to={"/"}>
@@ -44,6 +46,11 @@ export default function NavBar(): JSX.Element {
             >
               Favourites
             </Link>
+            {role == "admin" && (
+              <Link to={"/admin"} className="text-gray-700 hover:text-blue-500">
+                Admin Dashboard
+              </Link>
+            )}
           </div>
 
           <div>
