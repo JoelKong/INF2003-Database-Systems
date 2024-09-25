@@ -1,8 +1,8 @@
 /** @format */
 
 import NavBar from "../general/NavBar";
-import {Link, useNavigate} from "react-router-dom";
-import {useState} from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
 
 export default function LoginPage(): JSX.Element {
   const navigate = useNavigate();
@@ -17,12 +17,12 @@ export default function LoginPage(): JSX.Element {
   async function handleLogin(username: string, password: string) {
     try {
       const response = await fetch("http://127.0.0.1:5000/api/v1/login", {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({username, password}),
-        credentials: 'include'
+        body: JSON.stringify({ username, password }),
+        credentials: "include",
       });
 
       if (!response.ok) {
@@ -31,26 +31,26 @@ export default function LoginPage(): JSX.Element {
 
       const data = await response.json();
 
-      const {adopter_id, name} = data.user;
+      const { adopter_id, name, role } = data.user;
 
-      sessionStorage.setItem("user", JSON.stringify({adopter_id, name}));
+      sessionStorage.setItem(
+        "user",
+        JSON.stringify({ adopter_id, name, role })
+      );
 
       console.log("Login success:", data);
       navigate("/listofpets");
-
     } catch (error) {
       console.error("Login error:", error);
       alert("Login failed. Please check your credentials and try again.");
     }
   }
 
-
   return (
     <div className="w-screen h-screen">
-      <NavBar/>
+      <NavBar />
       <div className="w-full h-[calc(100%-64px)] flex justify-center items-center">
-        <div
-          className="w-1/2 p-8 border-2 border-black rounded-lg bg-gradient-to-tr from-amber-600 to-orange-300 flex flex-col items-center">
+        <div className="w-1/2 p-8 border-2 border-black rounded-lg bg-gradient-to-tr from-amber-600 to-orange-300 flex flex-col items-center">
           <h1 className="tracking-wide font-bold text-4xl text-gray-700 mb-6">
             Login
           </h1>

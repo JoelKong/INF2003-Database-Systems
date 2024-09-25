@@ -71,8 +71,8 @@ def register():
 
     try:
         cursor = connection.cursor()
-        cursor.execute("INSERT INTO Adoptor (name, password) VALUES (%s, %s)",
-                       (name, hashed_password))
+        cursor.execute("INSERT INTO Adoptor (name, password, role) VALUES (%s, %s, %s)",
+                       (name, hashed_password, "adopter"))
         connection.commit()
         return jsonify({"message": "User registered successfully"}), 201
     except Error as e:
@@ -103,7 +103,7 @@ def login():
 
         if user and check_password_hash(user['password'], password):
             return jsonify({"message": "Logged in successfully",
-                            "user": {"adopter_id": user['adopter_id'], "name": user['name']}}), 200
+                            "user": {"adopter_id": user['adopter_id'], "name": user['name'], "role": user['role']}}), 200
         else:
             return jsonify({"error": "Invalid username or password"}), 401
     except Error as e:
