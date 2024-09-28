@@ -20,7 +20,8 @@ export default function PetCard({
 
   // Function to handle adding the pet to favourites
   const handleAddToFavourites = async () => {
-    const user = JSON.parse(sessionStorage.getItem("user"));
+    const userSession: any = sessionStorage.getItem("user")
+    const user = JSON.parse(userSession);
     if (!user) {
       alert("You need to log in to add pets to favourites.");
       return;

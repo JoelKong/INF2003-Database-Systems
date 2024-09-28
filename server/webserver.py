@@ -501,14 +501,11 @@ def admin_register():
             connection.close()
 
 
-@app.route('/api/v1/admin/login', methods=['POST'])
+@app.route('/api/v1/admin/deletePet', methods=['POST'])
 def admin_login():
     data = request.json
-    username = data.get('username')
-    password = data.get('password')
-
-    if not username or not password:
-        return jsonify({"error": "Missing username or password"}), 400
+    pet_id = data.get('pet_id')
+    adopter_id = data.get('user_id')
 
     connection = get_db_connection()
     if connection is None:
@@ -516,22 +513,41 @@ def admin_login():
 
     try:
         cursor = connection.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM Admin WHERE username = %s", (username,))
-        user = cursor.fetchone()
+        cursor.execute("SELECT role FROM Adoptor WHERE adopter_id = %s", (adopter_id,))
+        user_role = cursor.fetchone()
+        
+        if user_role.get("role") != "admin":
+            return jsonify({"error": "Invalid Permissions"}), 400
+        
+        
+        cursor.execute("SELECT pet_condition_id FROM Pet_Info WHERE pet_id = %s", (pet_id,))
+        result = cursor.fetchone()
 
-        if user and check_password_hash(user.get('password'), password):
-            return jsonify(
-                {
-                    "message": "Login Successful",
-                    "user": {
-                        "admin_id": user["admin_id"],
-                        "username": user["username"],
-                    }
-                }
-            ), 200
-        else:
-            return jsonify({"error": "Invalid username or password"}), 401
+        if result is None:
+            return jsonify({"error": "Pet not found"}), 404
+
+        pet_condition_id = result.get("pet_condition_id")
+
+        cursor.execute("DELETE FROM Favourites WHERE pet_id = %s", (pet_id,))
+
+        cursor.execute("DELETE FROM Cart WHERE pet_id = %s", (pet_id,))
+
+        cursor.execute("DELETE FROM Orders WHERE pet_id = %s", (pet_id,))
+
+        cursor.execute("DELETE FROM Pet_Info WHERE pet_id = %s", (pet_id,))
+
+        cursor.execute("DELETE FROM Pet_Condition WHERE pet_condition_id = %s", (pet_condition_id,))
+
+
+
+        # Commit the transaction
+        connection.commit()
+        
+        return jsonify({"message": "Pet deleted successfully"}), 200
+        
+
     except Error as e:
+        connection.rollback()
         return jsonify({"error": str(e)}), 500
     finally:
         if connection.is_connected():

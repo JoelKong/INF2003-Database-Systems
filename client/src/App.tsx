@@ -9,7 +9,7 @@ import FavouritesPage from "./pages/favourites/FavouritesPage.tsx";
 import Cart from "./pages/cart/Cart.tsx";
 import Checkout from "./pages/checkout/Checkout.tsx";
 import AdminLoginPage from "./pages/admin_login/AdminLoginPage.tsx";
-import AdminPage from "./pages/admin/AdminPage.tsx";
+import AdminManagePetsPage from "./pages/admin/AdminManagePetsPage.tsx";
 import AdminRegisterPage from "./pages/admin_register/AdminRegisterPage.tsx";
 import BackgroundWrapper from "./pages/general/BackgroundWrapper.tsx";
 
@@ -28,7 +28,7 @@ function App() {
             <Route path="/checkout" element={<Checkout/>}/>
             <Route path="/adminregister" element={<AdminRegisterPage/>}/>
             <Route path="/admin/login" element={<AdminLoginPage/>}/>
-            <Route path="/admin" element={<AdminPage/>}/>
+            <Route path="/admin/managepets" element={<AdminManagePetsPage/>}/>
           </Routes>
         </BackgroundWrapper>
       </Router>

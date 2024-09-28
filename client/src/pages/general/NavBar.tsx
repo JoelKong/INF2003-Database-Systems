@@ -47,7 +47,7 @@ export default function NavBar(): JSX.Element {
               Favourites
             </Link>
             {role == "admin" && (
-              <Link to={"/admin"} className="text-gray-700 hover:text-blue-500">
+              <Link to={"/admin/managepets"} className="text-gray-700 hover:text-blue-500">
                 Admin Dashboard
               </Link>
             )}

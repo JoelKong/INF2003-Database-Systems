@@ -41,7 +41,8 @@ export default function Pets(): JSX.Element {
   async function getFavourites() {
     setLoading(true);
     try {
-      const user = JSON.parse(sessionStorage.getItem("user"));
+      const userSession: any = sessionStorage.getItem("user")
+      const user: any = JSON.parse(userSession);
       console.log(user);
       // Append adopter_id as a query parameter
       const response = await fetch(
