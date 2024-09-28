@@ -4,12 +4,9 @@ export default function PetCardAdmin({
   petDetails,
   setTogglePetConditions,
   setPets,
-  pets
+  pets,
+  setEditPetToggle
 }: any): JSX.Element {
-
-    function editPet() {
-
-    }
 
     async function deletePet() {
       const userSession: any = sessionStorage.getItem("user")
@@ -89,7 +86,7 @@ export default function PetCardAdmin({
           <button
             className="bg-blue-500 text-white px-4 py-2 rounded-lg transition ease-in-out hover:scale-110 hover:bg-indigo-500 duration-300"
             onClick={() => {
-              editPet();
+              setEditPetToggle({ toggle: true, data: petDetails })
             }}
           >
             Edit Pet Details

@@ -3,6 +3,7 @@ from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
 from mysql.connector import Error, connect
 from dotenv import load_dotenv
+from datetime import datetime
 import os
 
 # Load ur environment variables
@@ -545,7 +546,95 @@ def admin_login():
         
         return jsonify({"message": "Pet deleted successfully"}), 200
         
+    except Error as e:
+        connection.rollback()
+        return jsonify({"error": str(e)}), 500
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
 
+@app.route('/api/v1/admin/editPet', methods=['POST'])
+def admin_edit_pet():
+    data = request.json
+    pet_data = data.get('pet_data')
+    adopter_id = data.get('user_id')
+    pet_id = pet_data.get('pet_id')
+
+    if not pet_data or not adopter_id:
+        return jsonify({"error": "Missing required fields"}), 400
+
+    connection = get_db_connection()
+    if connection is None:
+        return jsonify({"error": "Database connection failed"}), 500
+
+    try:
+        cursor = connection.cursor(dictionary=True)
+        cursor.execute("SELECT role FROM Adoptor WHERE adopter_id = %s", (adopter_id,))
+        user_role = cursor.fetchone()
+        
+        if user_role.get("role") != "admin":
+            return jsonify({"error": "Invalid Permissions"}), 400
+        
+        
+        cursor.execute("SELECT pet_condition_id FROM Pet_Info WHERE pet_id = %s", (pet_id,))
+        result = cursor.fetchone()
+
+        if result is None:
+            return jsonify({"error": "Pet not found"}), 404
+
+        pet_condition_id = result.get("pet_condition_id")
+
+        vaccination_date_str = pet_data.get('vaccination_date')
+        vaccination_date = datetime.strptime(vaccination_date_str, '%a, %d %b %Y %H:%M:%S %Z')
+        formatted_vaccination_date = vaccination_date.strftime('%Y-%m-%d')
+
+
+        cursor.execute("""
+            UPDATE Pet_Info
+            SET 
+                name = %s,
+                type = %s,
+                breed = %s,
+                gender = %s,
+                age_month = %s,
+                description = %s
+            WHERE pet_id = %s
+        """, (
+            pet_data.get('name'),
+            pet_data.get('type'),
+            pet_data.get('breed'),
+            pet_data.get('gender'),
+            pet_data.get('age_month'),
+            pet_data.get('description'),
+            pet_id
+        ))
+
+        # Update Pet_Condition table
+        cursor.execute("""
+            UPDATE Pet_Condition
+            SET 
+                weight = %s,
+                vaccination_date = %s,
+                health_condition = %s,
+                sterilisation_status = %s,
+                adoption_fee = %s,
+                previous_owner = %s
+            WHERE pet_condition_id = %s
+        """, (
+            pet_data.get('weight'),
+            formatted_vaccination_date,
+            pet_data.get('health_condition'),
+            pet_data.get('sterilisation_status'),
+            pet_data.get('adoption_fee'),
+            pet_data.get('previous_owner'),
+            pet_condition_id
+        ))
+        
+        connection.commit()
+        
+        return jsonify({"message": "Pet updated successfully"}), 200
+        
     except Error as e:
         connection.rollback()
         return jsonify({"error": str(e)}), 500
