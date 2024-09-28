@@ -104,7 +104,8 @@ def login():
 
         if user and check_password_hash(user['password'], password):
             return jsonify({"message": "Logged in successfully",
-                            "user": {"adopter_id": user['adopter_id'], "name": user['name'], "role": user['role']}}), 200
+                            "user": {"adopter_id": user['adopter_id'], "name": user['name'],
+                                     "role": user['role']}}), 200
         else:
             return jsonify({"error": "Invalid username or password"}), 401
     except Error as e:
@@ -118,6 +119,7 @@ def login():
 """
 --- Pets Endpoints ---
 """
+
 
 @app.route('/api/v1/getTop3', methods=['GET'])
 def get_Top3():
@@ -148,6 +150,7 @@ def get_Top3():
         if connection.is_connected():
             cursor.close()
             connection.close()
+
 
 @app.route('/api/v1/getpets', methods=['GET'])
 def get_all_pets():
@@ -471,6 +474,7 @@ def confirmReservation():
 --- Admin Endpoints ---
 """
 
+
 # Admin Registration (TO BE REMOVED)
 @app.route('/api/v1/admin/register', methods=['POST'])
 def admin_register():
@@ -516,11 +520,10 @@ def admin_login():
         cursor = connection.cursor(dictionary=True)
         cursor.execute("SELECT role FROM Adoptor WHERE adopter_id = %s", (adopter_id,))
         user_role = cursor.fetchone()
-        
+
         if user_role.get("role") != "admin":
             return jsonify({"error": "Invalid Permissions"}), 400
-        
-        
+
         cursor.execute("SELECT pet_condition_id FROM Pet_Info WHERE pet_id = %s", (pet_id,))
         result = cursor.fetchone()
 
@@ -539,13 +542,11 @@ def admin_login():
 
         cursor.execute("DELETE FROM Pet_Condition WHERE pet_condition_id = %s", (pet_condition_id,))
 
-
-
         # Commit the transaction
         connection.commit()
-        
+
         return jsonify({"message": "Pet deleted successfully"}), 200
-        
+
     except Error as e:
         connection.rollback()
         return jsonify({"error": str(e)}), 500
@@ -553,6 +554,7 @@ def admin_login():
         if connection.is_connected():
             cursor.close()
             connection.close()
+
 
 @app.route('/api/v1/admin/editPet', methods=['POST'])
 def admin_edit_pet():
@@ -572,11 +574,10 @@ def admin_edit_pet():
         cursor = connection.cursor(dictionary=True)
         cursor.execute("SELECT role FROM Adoptor WHERE adopter_id = %s", (adopter_id,))
         user_role = cursor.fetchone()
-        
+
         if user_role.get("role") != "admin":
             return jsonify({"error": "Invalid Permissions"}), 400
-        
-        
+
         cursor.execute("SELECT pet_condition_id FROM Pet_Info WHERE pet_id = %s", (pet_id,))
         result = cursor.fetchone()
 
@@ -588,7 +589,6 @@ def admin_edit_pet():
         vaccination_date_str = pet_data.get('vaccination_date')
         vaccination_date = datetime.strptime(vaccination_date_str, '%a, %d %b %Y %H:%M:%S %Z')
         formatted_vaccination_date = vaccination_date.strftime('%Y-%m-%d')
-
 
         cursor.execute("""
             UPDATE Pet_Info
@@ -630,11 +630,11 @@ def admin_edit_pet():
             pet_data.get('previous_owner'),
             pet_condition_id
         ))
-        
+
         connection.commit()
-        
+
         return jsonify({"message": "Pet updated successfully"}), 200
-        
+
     except Error as e:
         connection.rollback()
         return jsonify({"error": str(e)}), 500
@@ -679,11 +679,10 @@ def admin_add_pet():
         cursor = connection.cursor(dictionary=True)
         cursor.execute("SELECT role FROM Adoptor WHERE adopter_id = %s", (adopter_id,))
         user_role = cursor.fetchone()
-        
+
         if user_role.get("role") != "admin":
             return jsonify({"error": "Invalid Permissions"}), 400
-        
-        
+
         vaccination_date_str = pet_data.get('vaccination_date')
         vaccination_date = datetime.strptime(vaccination_date_str, '%d/%m/%Y')
         formatted_vaccination_date = vaccination_date.strftime('%Y-%m-%d')
@@ -692,7 +691,9 @@ def admin_add_pet():
         INSERT INTO pets.Pet_Condition (weight, vaccination_date, health_condition, sterilisation_status, adoption_fee, previous_owner)
         VALUES (%s, %s, %s, %s, %s, %s);
         """
-        cursor.execute(query_pets_condition, (pet_data.get('weight'), formatted_vaccination_date, pet_data.get('health_condition'), pet_data.get('sterilisation_status'), pet_data.get('adoption_fee'), pet_data.get('previous_owner')))
+        cursor.execute(query_pets_condition, (
+        pet_data.get('weight'), formatted_vaccination_date, pet_data.get('health_condition'),
+        pet_data.get('sterilisation_status'), pet_data.get('adoption_fee'), pet_data.get('previous_owner')))
         cursor.execute("SELECT LAST_INSERT_ID();")
         pet_condition_id = cursor.fetchone().get('LAST_INSERT_ID()')
 
@@ -700,14 +701,118 @@ def admin_add_pet():
         INSERT INTO pets.Pet_Info (name, type, breed, gender, age_month, description, image, pet_condition_id)
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
         """
-        cursor.execute(query_pets_info, (pet_data.get('name'), pet_data.get('type'), pet_data.get('breed'), pet_data.get('gender'), pet_data.get('age_month'), pet_data.get('description'), pet_data.get('image'), pet_condition_id))
-        
+        cursor.execute(query_pets_info, (
+        pet_data.get('name'), pet_data.get('type'), pet_data.get('breed'), pet_data.get('gender'),
+        pet_data.get('age_month'), pet_data.get('description'), pet_data.get('image'), pet_condition_id))
+
         connection.commit()
-        
+
         return jsonify({"message": "Pet added successfully"}), 200
 
     except Error as e:
         connection.rollback()
+        return jsonify({"error": str(e)}), 500
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+
+
+@app.route('/api/v1/admin/getAdopters', methods=['POST'])
+def get_adopters():
+    data = request.json
+    user = data.get('user')
+    adopter_id = user.get('adopter_id')
+    connection = get_db_connection()
+
+    if connection is None:
+        return jsonify({"error": "Database connection failed"}), 500
+
+    try:
+        cursor = connection.cursor(dictionary=True)
+        cursor.execute("SELECT role FROM Adoptor WHERE adopter_id = %s", (adopter_id,))
+        user_role = cursor.fetchone()
+
+        if user_role.get("role") != "admin":
+            return jsonify({"error": "Invalid Permissions"}), 400
+
+        cursor.execute("SELECT adopter_id, name, role FROM Adoptor")
+        adopters = cursor.fetchall()
+
+        return jsonify({"adopters": adopters}), 200
+
+    except Error as e:
+        return jsonify({"error": str(e)}), 500
+
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+
+
+@app.route('/api/v1/admin/addAdopter', methods=['POST'])
+def add_adopter():
+    data = request.json
+    user = data.get('user')
+    new_adopter = data.get('newAdopter')
+
+    connection = get_db_connection()
+
+    if connection is None:
+        return jsonify({"error": "Database connection failed"}), 500
+
+    try:
+        cursor = connection.cursor(dictionary=True)
+
+        cursor.execute("SELECT role FROM Adoptor WHERE adopter_id = %s", (user.get('adopter_id'),))
+        user_role = cursor.fetchone()
+
+        if user_role.get("role") != "admin":
+            return jsonify({"error": "Invalid Permissions"}), 400
+
+        cursor.execute("""
+            INSERT INTO Adoptor (name, password, role) 
+            VALUES (%s, %s, %s)
+        """, (new_adopter['name'], new_adopter['password'],
+              'adopter'))  # need change this on sql side to make default value be adopter
+
+        connection.commit()
+
+        return jsonify({"message": "Adopter added successfully"}), 201
+
+    except Error as e:
+        return jsonify({"error": str(e)}), 500
+
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+
+
+@app.route('/api/v1/admin/updateAdopterRole', methods=['POST'])
+def update_adopter_role():
+    data = request.json
+    user = data.get('user')
+    adopter_id = data.get('adopterId')
+    new_role = data.get('newRole')
+
+    connection = get_db_connection()
+    if connection is None:
+        return jsonify({"error": "Database connection failed"}), 500
+
+    try:
+        cursor = connection.cursor(dictionary=True)
+
+        cursor.execute("SELECT role FROM Adoptor WHERE adopter_id = %s", (user.get('adopter_id'),))
+        user_role = cursor.fetchone()
+
+        if user_role.get("role") != "admin":
+            return jsonify({"error": "Invalid Permissions"}), 400
+
+        cursor.execute("UPDATE Adoptor SET role = %s WHERE adopter_id = %s", (new_role, adopter_id))
+        connection.commit()
+        return jsonify({"message": "Role updated successfully"}), 200
+    except Error as e:
         return jsonify({"error": str(e)}), 500
     finally:
         if connection.is_connected():
