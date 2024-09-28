@@ -16,6 +16,10 @@ export default function AdminManagePetsPage() {
     toggle: false,
     data: {},
   })
+  const [toggleAddPet, setToggleAddPet] = useState<any>({
+    toggle: false,
+    data: {},
+  })
 
 
   async function getPets() {
@@ -42,6 +46,60 @@ export default function AdminManagePetsPage() {
     }));
   };
 
+  const handleInputChangeAdd = (e: any) => {
+    const { name, value } = e.target;
+    console.log(name)
+    console.log(value)
+    setToggleAddPet((prev: any) => ({
+      ...prev,
+      data: { ...prev.data, [name]: value },
+    }));
+
+    console.log(toggleAddPet.data)
+  };
+
+
+
+  async function addPet(e:any, petData: any) {
+    e.preventDefault()
+    const userSession: any = sessionStorage.getItem("user")
+    const user = JSON.parse(userSession);
+
+    try {
+      const response = await fetch(
+        "http://127.0.0.1:5000/api/v1/admin/addPet",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ pet_data: petData, user_id: user.adopter_id }),
+        }
+      );
+
+      if (response.status === 200) {
+        alert(`${petData.name} has been added.`);
+        setToggleAddPet((prevState: any) => ({
+          ...prevState,
+          toggle: false
+        }))
+        getPets()
+
+      } else {
+        const data = await response.json();
+        alert(data.error || "Failed to add pet.");
+      }
+    } catch (error) {
+      console.error("Error adding pet:", error);
+      alert("An error occurred while adding pet.");
+    }
+
+    setToggleAddPet((prevState: any) => ({
+      ...prevState,
+      toggle: false
+    }))
+  }
+
   async function editPet(e: any, petData: any) {
     e.preventDefault()
 
@@ -61,12 +119,8 @@ export default function AdminManagePetsPage() {
       );
 
       if (response.status === 200) {
-        const updatedPets = pets.map((pet: any) => 
-          pet.pet_id === editPetToggle.data.pet_id ? editPetToggle.data : pet
-        );
-        setPets(updatedPets);
         alert(`${editPetToggle.data.name} has been updated.`);
-
+        getPets()
       } else {
         const data = await response.json();
         alert(data.error || "Failed to update.");
@@ -149,6 +203,89 @@ export default function AdminManagePetsPage() {
         </section>
       )}
 
+      {toggleAddPet.toggle && <section className="w-screen h-screen fixed flex justify-center items-center backdrop-blur-sm z-50">
+          <div className="h-5/6 w-5/6 shadow-2xl rounded-lg bg-white">
+            <div className="h-3/6 w-full border-b-2 flex justify-center items-center cursor:pointer">
+              Fill in Image Link
+            </div>
+            <div className="flex flex-col h-3/6 justify-evenly p-4 tracking-wide overflow-y-auto overflow-x-hidden break-words">
+              <button
+                className="bg-blue-500 text-white px-4 py-2 rounded-lg transition ease-in-out hover:scale-110 hover:bg-indigo-500 duration-300"
+                onClick={() =>
+                  setToggleAddPet({
+                    toggle: false,
+                    data: {},
+                  })
+                }
+              >
+                Back
+              </button>
+              <form onSubmit={(e: any) => {addPet(e, toggleAddPet.data)}} className="mt-2 mb-2">
+              <div className="flex flex-row mb-2">
+                    <p className="font-bold mr-1">Image Link: </p>
+                    <input className="border-2 rounded-lg pl-2 pr-2 border-black tracking-wide" name="image" value={toggleAddPet.data.image} onChange={(e: any) => {handleInputChangeAdd(e)}}/>
+                  </div>
+                <div className="flex flex-row mb-2">
+                    <p className="font-bold mr-1">Name: </p>
+                    <input className="border-2 rounded-lg pl-2 pr-2 border-black tracking-wide" name="name" value={toggleAddPet.data.name} onChange={(e: any) => {handleInputChangeAdd(e)}}/>
+                  </div>
+                  <div className="flex flex-row mb-2">
+                    <p className="font-bold mr-1">Type: </p>
+                    <input className="border-2 rounded-lg pl-2 pr-2 border-black tracking-wide" name="type" value={toggleAddPet.data.type} onChange={(e: any) => {handleInputChangeAdd(e)}}/>
+                  </div>
+                  <div className="flex flex-row mb-2">
+                    <p className="font-bold mr-1">Breed: </p>
+                    <input className="border-2 rounded-lg pl-2 pr-2 border-black tracking-wide" name="breed" value={toggleAddPet.data.breed} onChange={(e: any) => {handleInputChangeAdd(e)}}/>
+                  </div>
+                  <div className="flex flex-row mb-2">
+                    <p className="font-bold mr-1">Gender: </p>
+                    <input className="border-2 rounded-lg pl-2 pr-2 border-black tracking-wide" name="gender" value={toggleAddPet.data.gender} onChange={(e: any) => {handleInputChangeAdd(e)}}/>
+                  </div>
+                  <div className="flex flex-row mb-2">
+                    <p className="font-bold mr-1">Age: </p>
+                    <input className="border-2 rounded-lg pl-2 pr-2 border-black tracking-wide" name="age_month" value={toggleAddPet.data.age_month} onChange={(e: any) => {handleInputChangeAdd(e)}}/>
+                  </div>
+                  <div className="flex flex-row mb-2">
+                    <p className="font-bold mr-1">Description: </p>
+                    <input className="border-2 rounded-lg pl-2 pr-2 border-black tracking-wide" name="description" value={toggleAddPet.data.description} onChange={(e: any) => {handleInputChangeAdd(e)}}/>
+                  </div>
+                  <div className="flex flex-row mb-2">
+                    <p className="font-bold mr-1">Weight: </p>
+                    <input className="border-2 rounded-lg pl-2 pr-2 border-black tracking-wide" name="weight" value={toggleAddPet.data.weight} onChange={(e: any) => {handleInputChangeAdd(e)}}/>
+                  </div>
+                  <div className="flex flex-row mb-2">
+                    <p className="font-bold mr-1">{"Vaccination Date (dd/mm/yyyy):"} </p>
+                    <input className="border-2 rounded-lg pl-2 pr-2 border-black tracking-wide" name="vaccination_date" value={toggleAddPet.data.vaccination_date} onChange={(e: any) => {handleInputChangeAdd(e)}}/>
+                  </div>
+                  <div className="flex flex-row mb-2">
+                    <p className="font-bold mr-1">Health Condition: </p>
+                    <input className="border-2 rounded-lg pl-2 pr-2 border-black tracking-wide" name="health_condition" value={toggleAddPet.data.health_condition} onChange={(e: any) => {handleInputChangeAdd(e)}}/>
+                  </div>
+                  <div className="flex flex-row mb-2">
+                    <p className="font-bold mr-1">Sterilisation Status: </p>
+                    <input className="border-2 rounded-lg pl-2 pr-2 border-black tracking-wide" name="sterilisation_status" value={toggleAddPet.data.sterilisation_status} onChange={(e: any) => {handleInputChangeAdd(e)}}/>
+                  </div>
+                  <div className="flex flex-row mb-2">
+                    <p className="font-bold mr-1">Adoption Fee: </p>
+                    <input className="border-2 rounded-lg pl-2 pr-2 border-black tracking-wide" name="adoption_fee" value={toggleAddPet.data.adoption_fee} onChange={(e: any) => {handleInputChangeAdd(e)}}/>
+                  </div>
+                  <div className="flex flex-row mb-2">
+                    <p className="font-bold mr-1">Previous Owner: </p>
+                    <input className="border-2 rounded-lg pl-2 pr-2 border-black tracking-wide" name="previous_owner" value={toggleAddPet.data.previous_owner} onChange={(e: any) => {handleInputChangeAdd(e)}}/>
+                  </div>
+              </form>
+              <button
+                className="bg-blue-500 text-white px-4 py-2 rounded-lg transition ease-in-out hover:scale-110 hover:bg-indigo-500 duration-300"
+                onClick={(e: any) =>
+                  addPet(e, toggleAddPet.data)
+                }
+              >
+                Add Pet
+              </button>
+            </div>
+          </div>
+        </section>}
+
       {editPetToggle.toggle && <section className="w-screen h-screen fixed flex justify-center items-center backdrop-blur-sm z-50">
           <div className="h-5/6 w-5/6 shadow-2xl rounded-lg bg-white">
             <div className="h-3/6 border-b-2">
@@ -171,54 +308,54 @@ export default function AdminManagePetsPage() {
                 Back
               </button>
               <form onSubmit={(e: any) => {editPet(e, editPetToggle.data)}} className="mt-2 mb-2">
-              <div className="flex flex-row mb-2">
-                  <p className="font-bold mr-1">Name: </p>
-                  <input className="border-2 rounded-lg pl-2 pr-2 border-black tracking-wide" name="name" value={editPetToggle.data.name} onChange={(e: any) => {handleInputChange(e)}}/>
-                </div>
                 <div className="flex flex-row mb-2">
-                  <p className="font-bold mr-1">Type: </p>
-                  <input className="border-2 rounded-lg pl-2 pr-2 border-black tracking-wide" name="type" value={editPetToggle.data.type} onChange={(e: any) => {handleInputChange(e)}}/>
-                </div>
-                <div className="flex flex-row mb-2">
-                  <p className="font-bold mr-1">Breed: </p>
-                  <input className="border-2 rounded-lg pl-2 pr-2 border-black tracking-wide" name="breed" value={editPetToggle.data.breed} onChange={(e: any) => {handleInputChange(e)}}/>
-                </div>
-                <div className="flex flex-row mb-2">
-                  <p className="font-bold mr-1">Gender: </p>
-                  <input className="border-2 rounded-lg pl-2 pr-2 border-black tracking-wide" name="gender" value={editPetToggle.data.gender} onChange={(e: any) => {handleInputChange(e)}}/>
-                </div>
-                <div className="flex flex-row mb-2">
-                  <p className="font-bold mr-1">Age: </p>
-                  <input className="border-2 rounded-lg pl-2 pr-2 border-black tracking-wide" name="age_month" value={editPetToggle.data.age_month} onChange={(e: any) => {handleInputChange(e)}}/>
-                </div>
-                <div className="flex flex-row mb-2">
-                  <p className="font-bold mr-1">Description: </p>
-                  <input className="border-2 rounded-lg pl-2 pr-2 border-black tracking-wide" name="description" value={editPetToggle.data.description} onChange={(e: any) => {handleInputChange(e)}}/>
-                </div>
-                <div className="flex flex-row mb-2">
-                  <p className="font-bold mr-1">Weight: </p>
-                  <input className="border-2 rounded-lg pl-2 pr-2 border-black tracking-wide" name="weight" value={editPetToggle.data.weight} onChange={(e: any) => {handleInputChange(e)}}/>
-                </div>
-                <div className="flex flex-row mb-2">
-                  <p className="font-bold mr-1">Vaccination Date: </p>
-                  <input className="border-2 rounded-lg pl-2 pr-2 border-black tracking-wide" name="vaccination_date" value={editPetToggle.data.vaccination_date} onChange={(e: any) => {handleInputChange(e)}}/>
-                </div>
-                <div className="flex flex-row mb-2">
-                  <p className="font-bold mr-1">Health Condition: </p>
-                  <input className="border-2 rounded-lg pl-2 pr-2 border-black tracking-wide" name="health_condition" value={editPetToggle.data.health_condition} onChange={(e: any) => {handleInputChange(e)}}/>
-                </div>
-                <div className="flex flex-row mb-2">
-                  <p className="font-bold mr-1">Sterilisation Status: </p>
-                  <input className="border-2 rounded-lg pl-2 pr-2 border-black tracking-wide" name="status" value={editPetToggle.data.sterilisation_status} onChange={(e: any) => {handleInputChange(e)}}/>
-                </div>
-                <div className="flex flex-row mb-2">
-                  <p className="font-bold mr-1">Adoption Fee: </p>
-                  <input className="border-2 rounded-lg pl-2 pr-2 border-black tracking-wide" name="adoption_fee" value={editPetToggle.data.adoption_fee} onChange={(e: any) => {handleInputChange(e)}}/>
-                </div>
-                <div className="flex flex-row mb-2">
-                  <p className="font-bold mr-1">Previous Owner: </p>
-                  <input className="border-2 rounded-lg pl-2 pr-2 border-black tracking-wide" name="previous_owner" value={editPetToggle.data.previous_owner} onChange={(e: any) => {handleInputChange(e)}}/>
-                </div>
+                    <p className="font-bold mr-1">Name: </p>
+                    <input className="border-2 rounded-lg pl-2 pr-2 border-black tracking-wide" name="name" value={editPetToggle.data.name} onChange={(e: any) => {handleInputChange(e)}}/>
+                  </div>
+                  <div className="flex flex-row mb-2">
+                    <p className="font-bold mr-1">Type: </p>
+                    <input className="border-2 rounded-lg pl-2 pr-2 border-black tracking-wide" name="type" value={editPetToggle.data.type} onChange={(e: any) => {handleInputChange(e)}}/>
+                  </div>
+                  <div className="flex flex-row mb-2">
+                    <p className="font-bold mr-1">Breed: </p>
+                    <input className="border-2 rounded-lg pl-2 pr-2 border-black tracking-wide" name="breed" value={editPetToggle.data.breed} onChange={(e: any) => {handleInputChange(e)}}/>
+                  </div>
+                  <div className="flex flex-row mb-2">
+                    <p className="font-bold mr-1">Gender: </p>
+                    <input className="border-2 rounded-lg pl-2 pr-2 border-black tracking-wide" name="gender" value={editPetToggle.data.gender} onChange={(e: any) => {handleInputChange(e)}}/>
+                  </div>
+                  <div className="flex flex-row mb-2">
+                    <p className="font-bold mr-1">Age: </p>
+                    <input className="border-2 rounded-lg pl-2 pr-2 border-black tracking-wide" name="age_month" value={editPetToggle.data.age_month} onChange={(e: any) => {handleInputChange(e)}}/>
+                  </div>
+                  <div className="flex flex-row mb-2">
+                    <p className="font-bold mr-1">Description: </p>
+                    <input className="border-2 rounded-lg pl-2 pr-2 border-black tracking-wide" name="description" value={editPetToggle.data.description} onChange={(e: any) => {handleInputChange(e)}}/>
+                  </div>
+                  <div className="flex flex-row mb-2">
+                    <p className="font-bold mr-1">Weight: </p>
+                    <input className="border-2 rounded-lg pl-2 pr-2 border-black tracking-wide" name="weight" value={editPetToggle.data.weight} onChange={(e: any) => {handleInputChange(e)}}/>
+                  </div>
+                  <div className="flex flex-row mb-2">
+                    <p className="font-bold mr-1">Vaccination Date: </p>
+                    <input className="border-2 rounded-lg pl-2 pr-2 border-black tracking-wide" name="vaccination_date" value={editPetToggle.data.vaccination_date} onChange={(e: any) => {handleInputChange(e)}}/>
+                  </div>
+                  <div className="flex flex-row mb-2">
+                    <p className="font-bold mr-1">Health Condition: </p>
+                    <input className="border-2 rounded-lg pl-2 pr-2 border-black tracking-wide" name="health_condition" value={editPetToggle.data.health_condition} onChange={(e: any) => {handleInputChange(e)}}/>
+                  </div>
+                  <div className="flex flex-row mb-2">
+                    <p className="font-bold mr-1">Sterilisation Status: </p>
+                    <input className="border-2 rounded-lg pl-2 pr-2 border-black tracking-wide" name="sterilisation_status" value={editPetToggle.data.sterilisation_status} onChange={(e: any) => {handleInputChange(e)}}/>
+                  </div>
+                  <div className="flex flex-row mb-2">
+                    <p className="font-bold mr-1">Adoption Fee: </p>
+                    <input className="border-2 rounded-lg pl-2 pr-2 border-black tracking-wide" name="adoption_fee" value={editPetToggle.data.adoption_fee} onChange={(e: any) => {handleInputChange(e)}}/>
+                  </div>
+                  <div className="flex flex-row mb-2">
+                    <p className="font-bold mr-1">Previous Owner: </p>
+                    <input className="border-2 rounded-lg pl-2 pr-2 border-black tracking-wide" name="previous_owner" value={editPetToggle.data.previous_owner} onChange={(e: any) => {handleInputChange(e)}}/>
+                  </div>
               </form>
               <button
                 className="bg-blue-500 text-white px-4 py-2 rounded-lg transition ease-in-out hover:scale-110 hover:bg-indigo-500 duration-300"
@@ -237,6 +374,14 @@ export default function AdminManagePetsPage() {
             Manage Pets
           </h1>
         </div>
+        <button
+          className="bg-blue-500 text-white px-4 py-2 rounded-lg transition ease-in-out hover:scale-110 hover:bg-indigo-500 duration-300 mt-4 w-full"
+          onClick={() =>
+            setToggleAddPet({ toggle: true, data: {} })
+          }
+        >
+          Add New Pet
+        </button>
         <div
           className="w-full mt-4 pl-6 pr-6 h-full flex flex-row flex-wrap justify-evenly overflow-y-scroll overflow-x-hidden"
         >

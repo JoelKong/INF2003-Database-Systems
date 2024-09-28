@@ -644,6 +644,76 @@ def admin_edit_pet():
             connection.close()
 
 
+@app.route('/api/v1/admin/addPet', methods=['POST'])
+def admin_add_pet():
+    """
+    Adds a new pet to the database.
+
+    This endpoint accepts a JSON payload with the following fields:
+    - name: 
+    - type: 
+    - breed: 
+    - gender: 
+    - age_month: 
+    - description: 
+    - image: 
+    - weight: 
+    - vaccination_date: 
+    - health_condition: 
+    - sterilisation_status: 
+    - adoption_fee: 
+    - previous_owner: 
+    """
+    data = request.json
+    pet_data = data.get('pet_data')
+    adopter_id = data.get('user_id')
+
+    if not pet_data or not adopter_id:
+        return jsonify({"error": "Missing required fields"}), 400
+
+    connection = get_db_connection()
+    if connection is None:
+        return jsonify({"error": "Database connection failed"}), 500
+
+    try:
+        cursor = connection.cursor(dictionary=True)
+        cursor.execute("SELECT role FROM Adoptor WHERE adopter_id = %s", (adopter_id,))
+        user_role = cursor.fetchone()
+        
+        if user_role.get("role") != "admin":
+            return jsonify({"error": "Invalid Permissions"}), 400
+        
+        
+        vaccination_date_str = pet_data.get('vaccination_date')
+        vaccination_date = datetime.strptime(vaccination_date_str, '%d/%m/%Y')
+        formatted_vaccination_date = vaccination_date.strftime('%Y-%m-%d')
+
+        query_pets_condition = """
+        INSERT INTO pets.Pet_Condition (weight, vaccination_date, health_condition, sterilisation_status, adoption_fee, previous_owner)
+        VALUES (%s, %s, %s, %s, %s, %s);
+        """
+        cursor.execute(query_pets_condition, (pet_data.get('weight'), formatted_vaccination_date, pet_data.get('health_condition'), pet_data.get('sterilisation_status'), pet_data.get('adoption_fee'), pet_data.get('previous_owner')))
+        cursor.execute("SELECT LAST_INSERT_ID();")
+        pet_condition_id = cursor.fetchone().get('LAST_INSERT_ID()')
+
+        query_pets_info = """
+        INSERT INTO pets.Pet_Info (name, type, breed, gender, age_month, description, image, pet_condition_id)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
+        """
+        cursor.execute(query_pets_info, (pet_data.get('name'), pet_data.get('type'), pet_data.get('breed'), pet_data.get('gender'), pet_data.get('age_month'), pet_data.get('description'), pet_data.get('image'), pet_condition_id))
+        
+        connection.commit()
+        
+        return jsonify({"message": "Pet added successfully"}), 200
+
+    except Error as e:
+        connection.rollback()
+        return jsonify({"error": str(e)}), 500
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+
 
 if __name__ == '__main__':
     app.run(debug=True)
