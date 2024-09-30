@@ -314,6 +314,7 @@ def addFavourite():
             cursor.close()
             connection.close()
 
+
 @app.route('/api/v1/getReservedPets', methods=['GET'])
 def get_reserved_pets():
     user_id = request.args.get('user_id')
@@ -349,6 +350,7 @@ def get_reserved_pets():
     finally:
         cursor.close()
         connection.close()
+
 
 @app.route('/api/v1/getFavourites', methods=['GET'])
 def getFavourites():
@@ -807,31 +809,40 @@ def admin_add_pet():
 
 
 @app.route('/api/v1/admin/getUsers', methods=['POST'])
-def get_Userss():
+def admin_get_users():
     data = request.json
-    user = data.get('user')
-    user_id = user.get('user_id')
-    connection = get_db_connection()
+    user_id = data.get('user_id')
 
+    if not user_id:
+        return jsonify({"error": "User ID is required"}), 400
+
+    connection = get_db_connection()
     if connection is None:
         return jsonify({"error": "Database connection failed"}), 500
 
     try:
         cursor = connection.cursor(dictionary=True)
+
         cursor.execute("SELECT role FROM Users WHERE user_id = %s", (user_id,))
         user_role = cursor.fetchone()
 
-        if user_role.get("role") != "admin":
-            return jsonify({"error": "Invalid Permissions"}), 400
+        if not user_role or user_role.get("role") != "admin":
+            return jsonify({"error": "Invalid Permissions"}), 403
 
-        cursor.execute("SELECT user_id, username, role FROM Users")
+        query = "SELECT user_id, username, role FROM Users"
+        cursor.execute(query)
+
         users = cursor.fetchall()
 
-        return jsonify({"users": users}), 200
-
+        return jsonify({
+            "status": "success",
+            "users": users
+        })
     except Error as e:
-        return jsonify({"error": str(e)}), 500
-
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
     finally:
         if connection.is_connected():
             cursor.close()
@@ -841,57 +852,51 @@ def get_Userss():
 @app.route('/api/v1/admin/addUser', methods=['POST'])
 def admin_add_user():
     data = request.json
-    user = data.get('user')
-    new_user = data.get('newUser')
+    admin_id = data.get('admin_id')
+    username = data.get('username')
+    password = data.get('password')
+    role = data.get('role')
+
+    if not all([admin_id, username, password, role]):
+        return jsonify({"error": "All fields are required"}), 400
 
     connection = get_db_connection()
-
     if connection is None:
         return jsonify({"error": "Database connection failed"}), 500
 
     try:
         cursor = connection.cursor(dictionary=True)
 
-        cursor.execute("SELECT role FROM Users WHERE user_id = %s", (user.get('user_id'),))
+        cursor.execute("SELECT role FROM Users WHERE user_id = %s", (admin_id,))
         user_role = cursor.fetchone()
 
-        if user_role.get("role") != "admin":
-            return jsonify({"error": "Invalid Permissions"}), 400
+        if not user_role or user_role.get("role") != "admin":
+            return jsonify({"error": "Invalid Permissions"}), 403
 
-        # Validate new user input
-        if not isinstance(new_user, dict) or 'username' not in new_user or 'password' not in new_user or 'role' not in new_user:
-            return jsonify({"error": "Missing required fields in newUser"}), 400
-
-        if not new_user['username'] or not new_user['password'] or not new_user['role']:
-            return jsonify({"error": "Username, password, and role are required"}), 400
-
-        # Hash the password
-        hashed_password = generate_password_hash(new_user['password'])
-
-        cursor.execute("""
-            INSERT INTO Users (username, password, role) 
-            VALUES (%s, %s, %s)
-        """, (new_user['username'], hashed_password, 'adopter'))
-
+        cursor.execute(
+            "INSERT INTO Users (username, password, role) VALUES (%s, %s, %s)",
+            (username, password, role)
+        )
         connection.commit()
 
-        return jsonify({"message": "User added successfully"}), 201
+        return jsonify({"status": "success", "message": "User added successfully"}), 201
 
     except Error as e:
-        return jsonify({"error": str(e)}), 500
-
+        connection.rollback()
+        return jsonify({"status": "error", "message": str(e)}), 500
     finally:
         if connection.is_connected():
             cursor.close()
             connection.close()
 
 
-@app.route('/api/v1/admin/updateUsersRole', methods=['POST'])
-def update_Users_role():
+@app.route('/api/v1/admin/getUser/<int:user_id>', methods=['POST'])
+def admin_get_user(user_id):
     data = request.json
-    user = data.get('user')
-    user_id = data.get('userId')
-    new_role = data.get('newRole')
+    admin_id = data.get('admin_id')
+
+    if not admin_id:
+        return jsonify({"error": "Admin ID is required"}), 400
 
     connection = get_db_connection()
     if connection is None:
@@ -900,17 +905,122 @@ def update_Users_role():
     try:
         cursor = connection.cursor(dictionary=True)
 
-        cursor.execute("SELECT role FROM Users WHERE user_id = %s", (user.get('user_id'),))
-        user_role = cursor.fetchone()
+        cursor.execute("SELECT role FROM Users WHERE user_id = %s", (admin_id,))
+        admin_role = cursor.fetchone()
 
-        if user_role.get("role") != "admin":
-            return jsonify({"error": "Invalid Permissions"}), 400
+        if not admin_role or admin_role.get("role") != "admin":
+            return jsonify({"error": "Invalid Permissions"}), 403
 
-        cursor.execute("UPDATE Users SET role = %s WHERE user_id = %s", (new_role, user_id))
-        connection.commit()
-        return jsonify({"message": "Role updated successfully"}), 200
+        cursor.execute("SELECT user_id, username, role FROM Users WHERE user_id = %s", (user_id,))
+        user = cursor.fetchone()
+
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+
+        return jsonify({
+            "status": "success",
+            "user": user
+        })
+
     except Error as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+
+
+@app.route('/api/v1/admin/updateUser/<int:user_id>', methods=['POST'])
+def admin_update_user(user_id):
+    data = request.json
+    admin_id = data.get('admin_id')
+    username = data.get('username')
+    role = data.get('role')
+
+    if not all([admin_id, username, role]):
+        return jsonify({"error": "All fields are required"}), 400
+
+    connection = get_db_connection()
+    if connection is None:
+        return jsonify({"error": "Database connection failed"}), 500
+
+    try:
+        cursor = connection.cursor(dictionary=True)
+
+        cursor.execute("SELECT role FROM Users WHERE user_id = %s", (admin_id,))
+        admin_role = cursor.fetchone()
+
+        if not admin_role or admin_role.get("role") != "admin":
+            return jsonify({"error": "Invalid Permissions"}), 403
+
+        cursor.execute("UPDATE Users SET username = %s, role = %s WHERE user_id = %s",
+                       (username, role, user_id))
+        connection.commit()
+
+        if cursor.rowcount == 0:
+            return jsonify({"error": "User not found or no changes made"}), 404
+
+        return jsonify({
+            "status": "success",
+            "message": "User updated successfully"
+        })
+
+    except Error as e:
+        connection.rollback()
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+
+
+@app.route('/api/v1/admin/getApplications', methods=['POST'])
+def admin_get_applications():
+    data = request.json
+    admin_id = data.get('admin_id')
+
+    if not admin_id:
+        return jsonify({"error": "Admin ID is required"}), 400
+
+    connection = get_db_connection()
+    if connection is None:
+        return jsonify({"error": "Database connection failed"}), 500
+
+    try:
+        cursor = connection.cursor(dictionary=True)
+
+        cursor.execute("SELECT role FROM Users WHERE user_id = %s", (admin_id,))
+        admin_role = cursor.fetchone()
+
+        if not admin_role or admin_role.get("role") != "admin":
+            return jsonify({"error": "Invalid Permissions"}), 403
+
+        query = """
+        SELECT a.application_id, a.user_id, a.pet_id, a.submission_date, a.status,
+               u.username, p.name as pet_name
+        FROM Applications a
+        JOIN Users u ON a.user_id = u.user_id
+        JOIN Pet_Info p ON a.pet_id = p.pet_id
+        """
+        cursor.execute(query)
+        applications = cursor.fetchall()
+
+        return jsonify({
+            "status": "success",
+            "applications": applications
+        })
+
+    except Error as e:
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
     finally:
         if connection.is_connected():
             cursor.close()

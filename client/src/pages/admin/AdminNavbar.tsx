@@ -38,7 +38,7 @@ export default function AdminNavBar(): JSX.Element {
               Manage Pets
             </Link>
             <Link
-              to={"/admin/manageusers"}
+              to={"/admin/manage-users"}
               className="text-gray-700 hover:text-blue-500"
             >
               Manage Users

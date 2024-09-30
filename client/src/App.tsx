@@ -13,6 +13,9 @@ import AdminManagePetsPage from "./pages/admin/AdminManagePetsPage.tsx";
 import AdminRegisterPage from "./pages/admin_register/AdminRegisterPage.tsx";
 import BackgroundWrapper from "./pages/general/BackgroundWrapper.tsx";
 import AdminManageUsersPage from "./pages/admin/AdminManageUsersPage.tsx";
+import AdminAddUserPage from "./pages/admin/AdminAddUserPage.tsx";
+import AdminManageUserPage from "./pages/admin/AdminManageUserPage.tsx";
+import AdminApplicationsPage from "./pages/admin/AdminApplicationsPage.tsx";
 
 function App() {
   return (
@@ -30,7 +33,10 @@ function App() {
             <Route path="/adminregister" element={<AdminRegisterPage/>}/>
             <Route path="/admin/login" element={<AdminLoginPage/>}/>
             <Route path="/admin/managepets" element={<AdminManagePetsPage/>}/>
-            <Route path="/admin/manageusers" element={<AdminManageUsersPage/>} />
+            <Route path="/admin/manage-users" element={<AdminManageUsersPage/>} />
+            <Route path="/admin/add-user" element={<AdminAddUserPage/>} />
+            <Route path="/admin/manage-user/:userId" element={<AdminManageUserPage />} />
+            <Route path="/admin/applications" element={<AdminApplicationsPage />} />
           </Routes>
         </BackgroundWrapper>
       </Router>
