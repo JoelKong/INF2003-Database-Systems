@@ -58,10 +58,10 @@ def index():
 @app.route('/api/v1/register', methods=['POST'])
 def register():
     data = request.json
-    name = data.get('name')
+    username = data.get('username')
     password = data.get('password')
 
-    if not name or not password:
+    if not username or not password:
         return jsonify({"error": "Missing required fields"}), 400
 
     hashed_password = generate_password_hash(password)
@@ -72,8 +72,8 @@ def register():
 
     try:
         cursor = connection.cursor()
-        cursor.execute("INSERT INTO Adoptor (name, password, role) VALUES (%s, %s, %s)",
-                       (name, hashed_password, "adopter"))
+        cursor.execute("INSERT INTO Users (username, password, role) VALUES (%s, %s, %s)",
+                       (username, hashed_password, "adopter"))
         connection.commit()
         return jsonify({"message": "User registered successfully"}), 201
     except Error as e:
@@ -99,12 +99,12 @@ def login():
 
     try:
         cursor = connection.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM Adoptor WHERE name = %s", (username,))
+        cursor.execute("SELECT * FROM Users WHERE username = %s", (username,))
         user = cursor.fetchone()
 
         if user and check_password_hash(user['password'], password):
             return jsonify({"message": "Logged in successfully",
-                            "user": {"adopter_id": user['adopter_id'], "name": user['name'],
+                            "user": {"user_id": user['user_id'], "username": user['username'],
                                      "role": user['role']}}), 200
         else:
             return jsonify({"error": "Invalid username or password"}), 401
@@ -141,6 +141,13 @@ def get_Top3():
         cursor.execute(query)
         top3pets = cursor.fetchall()
 
+        # Convert sets to lists
+        for pet in top3pets:
+            if isinstance(pet.get('type'), set):
+                pet['type'] = list(pet['type'])
+            if isinstance(pet.get('gender'), set):
+                pet['gender'] = list(pet['gender'])
+
         return jsonify(top3pets), 200
 
     except Error as e:
@@ -152,7 +159,7 @@ def get_Top3():
             connection.close()
 
 
-@app.route('/api/v1/getpets', methods=['GET'])
+@app.route('/api/v1/getPets', methods=['GET'])
 def get_all_pets():
     connection = get_db_connection()
 
@@ -163,11 +170,27 @@ def get_all_pets():
         cursor = connection.cursor(dictionary=True)
         query = """
         SELECT *
-        FROM pets.Pet_Info
-        JOIN pets.Pet_Condition ON pets.Pet_Info.pet_condition_id = pets.Pet_Condition.pet_condition_id
+        FROM test.Pet_Info
+        JOIN test.Pet_Condition ON test.Pet_Info.pet_condition_id = test.Pet_Condition.pet_condition_id
         """
         cursor.execute(query)
         pets = cursor.fetchall()
+
+        # check and process each pet's data
+        for pet in pets:
+            # convert sets (if any) into lists as type and gender might be in sets
+            if isinstance(pet.get('type'), set):
+                pet['type'] = list(pet['type'])
+            if isinstance(pet.get('gender'), set):
+                pet['gender'] = list(pet['gender'])
+
+            # convert datetime objects to strings
+            try:
+                if isinstance(pet.get('vaccination_date'), datetime.date):
+                    pet['vaccination_date'] = pet['vaccination_date'].strftime('%Y-%m-%d')
+            except (TypeError, AttributeError):
+                # handle the case where the vaccination_date field has an unexpected data type
+                pet['vaccination_date'] = None
 
         return jsonify(pets), 200
 
@@ -234,6 +257,13 @@ def filter_pets():
         cursor.execute(query, params)
         pets = cursor.fetchall()
 
+        # Convert sets to lists
+        for pet in pets:
+            if isinstance(pet.get('type'), set):
+                pet['type'] = list(pet['type'])
+            if isinstance(pet.get('gender'), set):
+                pet['gender'] = list(pet['gender'])
+
         return jsonify(pets), 200
 
     except Error as e:
@@ -253,7 +283,7 @@ def addFavourite():
     if not pet_id:
         return jsonify({"error": "Pet ID is required"}), 400
 
-    adopter_id = data.get('adopter_id')
+    user_id = data.get('user_id')
 
     connection = get_db_connection()
     if connection is None:
@@ -262,15 +292,15 @@ def addFavourite():
     try:
         cursor = connection.cursor()
 
-        # check if the pet is already in the adopter's favourites
-        cursor.execute("SELECT * FROM Favourites WHERE adopter_id = %s AND pet_id = %s", (adopter_id, pet_id))
+        # check if the pet is already in the Users's favourites
+        cursor.execute("SELECT * FROM Favourites WHERE user_id = %s AND pet_id = %s", (user_id, pet_id))
         if cursor.fetchone():
             return jsonify({"error": "Pet is already in favourites"}), 400
 
         # insert the favourite pet into the Favourites table
         cursor.execute(
-            "INSERT INTO Favourites (adopter_id, pet_id) VALUES (%s, %s)",
-            (adopter_id, pet_id)
+            "INSERT INTO Favourites (user_id, pet_id) VALUES (%s, %s)",
+            (user_id, pet_id)
         )
         connection.commit()
 
@@ -284,12 +314,47 @@ def addFavourite():
             cursor.close()
             connection.close()
 
+@app.route('/api/v1/getReservedPets', methods=['GET'])
+def get_reserved_pets():
+    user_id = request.args.get('user_id')
+
+    if not user_id:
+        return jsonify({"error": "User ID is required"}), 400
+
+    connection = get_db_connection()
+    cursor = connection.cursor(dictionary=True)
+
+    try:
+        query = """
+        SELECT DISTINCT p.*
+        FROM Pet_Info p
+        INNER JOIN Applications a ON p.pet_id = a.pet_id
+        WHERE a.user_id = %s
+        """
+        cursor.execute(query, (user_id,))
+        pets_in_applications = cursor.fetchall()
+
+        # Convert sets to lists
+        for pet in pets_in_applications:
+            if isinstance(pet.get('type'), set):
+                pet['type'] = list(pet['type'])
+            if isinstance(pet.get('gender'), set):
+                pet['gender'] = list(pet['gender'])
+
+        return jsonify(pets_in_applications)
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+    finally:
+        cursor.close()
+        connection.close()
 
 @app.route('/api/v1/getFavourites', methods=['GET'])
 def getFavourites():
-    adopter_id = request.args.get('adopter_id')
-    if not adopter_id:
-        return jsonify({"error": "adopter_id is required"}), 400
+    user_id = request.args.get('user_id')
+    if not user_id:
+        return jsonify({"error": "user_id is required"}), 400
 
     connection = get_db_connection()
     cursor = connection.cursor(dictionary=True)
@@ -299,10 +364,17 @@ def getFavourites():
             SELECT pi.*
             FROM Favourites f
             JOIN Pet_Info pi ON f.pet_id = pi.pet_id
-            WHERE f.adopter_id = %s
+            WHERE f.user_id = %s
         """
-        cursor.execute(query, (adopter_id,))
+        cursor.execute(query, (user_id,))
         favourited_pets = cursor.fetchall()
+
+        # Convert sets to lists
+        for pet in favourited_pets:
+            if isinstance(pet.get('type'), set):
+                pet['type'] = list(pet['type'])
+            if isinstance(pet.get('gender'), set):
+                pet['gender'] = list(pet['gender'])
 
         return jsonify(favourited_pets)
 
@@ -322,10 +394,10 @@ def getFavourites():
 @app.route('/api/v1/addtocart', methods=['POST'])
 def addToCart():
     data = request.json
-    adopter_id = data.get('adopter_id')
+    user_id = data.get('user_id')
     pet_id = data.get('pet_id')
 
-    if not adopter_id:
+    if not user_id:
         return jsonify({"error": "User not logged in"}), 401  # User not logged in
 
     connection = get_db_connection()
@@ -334,13 +406,13 @@ def addToCart():
 
     try:
         cursor = connection.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM Cart WHERE adopter_id = %s AND pet_id = %s", (adopter_id, pet_id))
+        cursor.execute("SELECT * FROM Cart WHERE user_id = %s AND pet_id = %s", (user_id, pet_id))
         if cursor.fetchone():
             return jsonify({"error": "Pet is already in cart"}), 400
 
         cursor.execute(
-            "INSERT INTO Cart (adopter_id, pet_id) VALUES (%s, %s)",
-            (adopter_id, pet_id)
+            "INSERT INTO Cart (user_id, pet_id) VALUES (%s, %s)",
+            (user_id, pet_id)
         )
         connection.commit()
 
@@ -359,7 +431,7 @@ def addToCart():
 @app.route('/api/v1/getcart', methods=['POST'])
 def getCart():
     data = request.json
-    adopter_id = data.get('adopter_id')
+    user_id = data.get('user_id')
 
     connection = get_db_connection()
     if connection is None:
@@ -371,9 +443,16 @@ def getCart():
             SELECT Pet_Info.*, Cart.cart_id FROM pets.Pet_Info
             JOIN pets.Pet_Condition ON pets.Pet_Info.pet_condition_id = pets.Pet_Condition.pet_condition_id 
             JOIN Cart ON Pet_Info.pet_id = Cart.pet_id
-            WHERE pets.Pet_Info.pet_id IN (SELECT pet_id FROM Cart WHERE adopter_id = %s)
-        """, (adopter_id,))
+            WHERE pets.Pet_Info.pet_id IN (SELECT pet_id FROM Cart WHERE user_id = %s)
+        """, (user_id,))
         cart = cursor.fetchall()
+
+        # Convert sets to lists
+        for pet in cart:
+            if isinstance(pet.get('type'), set):
+                pet['type'] = list(pet['type'])
+            if isinstance(pet.get('gender'), set):
+                pet['gender'] = list(pet['gender'])
 
         return jsonify(cart), 200
 
@@ -390,11 +469,11 @@ def getCart():
 @app.route('/api/v1/removefromcart', methods=['POST'])
 def removeFromCart():
     data = request.json
-    adopter_id = data.get('adopter_id')
+    user_id = data.get('user_id')
     pet_id = data.get('pet_id')
 
-    if not adopter_id or not pet_id:
-        return jsonify({"error": "Missing adopter_id or pet_id"}), 400
+    if not user_id or not pet_id:
+        return jsonify({"error": "Missing user_id or pet_id"}), 400
 
     connection = get_db_connection()
     if connection is None:
@@ -406,8 +485,8 @@ def removeFromCart():
         # Delete the pet from the cart
         cursor.execute("""
             DELETE FROM Cart 
-            WHERE adopter_id = %s AND pet_id = %s
-        """, (adopter_id, pet_id))
+            WHERE user_id = %s AND pet_id = %s
+        """, (user_id, pet_id))
 
         connection.commit()
 
@@ -423,14 +502,14 @@ def removeFromCart():
             connection.close()
 
 
-@app.route('/api/v1/confirmreservation', methods=['POST'])
+@app.route('/api/v1/confirmReservation', methods=['POST'])
 def confirmReservation():
     data = request.json
-    adopter_id = data.get('adopter_id')
+    user_id = data.get('user_id')
     cart = data.get('cart')
 
-    if not adopter_id or not cart:
-        return jsonify({"error": "Missing adopter_id or cart"}), 400
+    if not user_id or not cart:
+        return jsonify({"error": "Missing user_id or cart"}), 400
 
     connection = get_db_connection()
     if connection is None:
@@ -440,12 +519,14 @@ def confirmReservation():
         cursor = connection.cursor()
 
         for item in cart:
-            cart_id = item.get('cart_id')
+            # cart_id = item.get('cart_id')
             pet_id = item.get('pet_id')
+            submission_date = datetime.now().date().isoformat()
+            status = 'pending'
 
             cursor.execute(
-                "INSERT INTO Orders (cart_id, adopter_id, pet_id) VALUES (%s, %s, %s)",
-                (cart_id, adopter_id, pet_id)
+                "INSERT INTO Applications (application_id, user_id, pet_id, submission_date, status) VALUES (NULL, %s, %s, %s, %s)",
+                (user_id, pet_id, submission_date, status)
             )
 
         connection.commit()
@@ -453,8 +534,8 @@ def confirmReservation():
         # Delete all pets from the cart
         cursor.execute("""
             DELETE FROM Cart 
-            WHERE adopter_id = %s
-        """, (adopter_id,))
+            WHERE user_id = %s
+        """, (user_id,))
 
         connection.commit()
 
@@ -510,7 +591,7 @@ def admin_register():
 def admin_login():
     data = request.json
     pet_id = data.get('pet_id')
-    adopter_id = data.get('user_id')
+    user_id = data.get('user_id')
 
     connection = get_db_connection()
     if connection is None:
@@ -518,7 +599,7 @@ def admin_login():
 
     try:
         cursor = connection.cursor(dictionary=True)
-        cursor.execute("SELECT role FROM Adoptor WHERE adopter_id = %s", (adopter_id,))
+        cursor.execute("SELECT role FROM Users WHERE user_id = %s", (user_id,))
         user_role = cursor.fetchone()
 
         if user_role.get("role") != "admin":
@@ -536,7 +617,7 @@ def admin_login():
 
         cursor.execute("DELETE FROM Cart WHERE pet_id = %s", (pet_id,))
 
-        cursor.execute("DELETE FROM Orders WHERE pet_id = %s", (pet_id,))
+        cursor.execute("DELETE FROM Applications WHERE pet_id = %s", (pet_id,))
 
         cursor.execute("DELETE FROM Pet_Info WHERE pet_id = %s", (pet_id,))
 
@@ -560,10 +641,10 @@ def admin_login():
 def admin_edit_pet():
     data = request.json
     pet_data = data.get('pet_data')
-    adopter_id = data.get('user_id')
+    user_id = data.get('user_id')
     pet_id = pet_data.get('pet_id')
 
-    if not pet_data or not adopter_id:
+    if not pet_data or not user_id:
         return jsonify({"error": "Missing required fields"}), 400
 
     connection = get_db_connection()
@@ -572,23 +653,30 @@ def admin_edit_pet():
 
     try:
         cursor = connection.cursor(dictionary=True)
-        cursor.execute("SELECT role FROM Adoptor WHERE adopter_id = %s", (adopter_id,))
+        cursor.execute("SELECT role FROM Users WHERE user_id = %s", (user_id,))
         user_role = cursor.fetchone()
 
         if user_role.get("role") != "admin":
             return jsonify({"error": "Invalid Permissions"}), 400
 
-        cursor.execute("SELECT pet_condition_id FROM Pet_Info WHERE pet_id = %s", (pet_id,))
+        cursor.execute("SELECT pet_condition_id, type FROM Pet_Info WHERE pet_id = %s", (pet_id,))
         result = cursor.fetchone()
 
         if result is None:
             return jsonify({"error": "Pet not found"}), 404
 
         pet_condition_id = result.get("pet_condition_id")
+        existing_type = result.get("type").split(',')
 
         vaccination_date_str = pet_data.get('vaccination_date')
-        vaccination_date = datetime.strptime(vaccination_date_str, '%a, %d %b %Y %H:%M:%S %Z')
-        formatted_vaccination_date = vaccination_date.strftime('%Y-%m-%d')
+        if vaccination_date_str:
+            vaccination_date = datetime.strptime(vaccination_date_str, '%a, %d %b %Y %H:%M:%S %Z')
+            formatted_vaccination_date = vaccination_date.strftime('%Y-%m-%d')
+        else:
+            formatted_vaccination_date = None
+
+        # Convert the type field to a comma-separated string
+        new_type = ','.join(pet_data.get('type'))
 
         cursor.execute("""
             UPDATE Pet_Info
@@ -602,7 +690,7 @@ def admin_edit_pet():
             WHERE pet_id = %s
         """, (
             pet_data.get('name'),
-            pet_data.get('type'),
+            new_type,
             pet_data.get('breed'),
             pet_data.get('gender'),
             pet_data.get('age_month'),
@@ -666,9 +754,9 @@ def admin_add_pet():
     """
     data = request.json
     pet_data = data.get('pet_data')
-    adopter_id = data.get('user_id')
+    user_id = data.get('user_id')
 
-    if not pet_data or not adopter_id:
+    if not pet_data or not user_id:
         return jsonify({"error": "Missing required fields"}), 400
 
     connection = get_db_connection()
@@ -677,7 +765,7 @@ def admin_add_pet():
 
     try:
         cursor = connection.cursor(dictionary=True)
-        cursor.execute("SELECT role FROM Adoptor WHERE adopter_id = %s", (adopter_id,))
+        cursor.execute("SELECT role FROM Users WHERE user_id = %s", (user_id,))
         user_role = cursor.fetchone()
 
         if user_role.get("role") != "admin":
@@ -692,8 +780,8 @@ def admin_add_pet():
         VALUES (%s, %s, %s, %s, %s, %s);
         """
         cursor.execute(query_pets_condition, (
-        pet_data.get('weight'), formatted_vaccination_date, pet_data.get('health_condition'),
-        pet_data.get('sterilisation_status'), pet_data.get('adoption_fee'), pet_data.get('previous_owner')))
+            pet_data.get('weight'), formatted_vaccination_date, pet_data.get('health_condition'),
+            pet_data.get('sterilisation_status'), pet_data.get('adoption_fee'), pet_data.get('previous_owner')))
         cursor.execute("SELECT LAST_INSERT_ID();")
         pet_condition_id = cursor.fetchone().get('LAST_INSERT_ID()')
 
@@ -702,12 +790,12 @@ def admin_add_pet():
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
         """
         cursor.execute(query_pets_info, (
-        pet_data.get('name'), pet_data.get('type'), pet_data.get('breed'), pet_data.get('gender'),
-        pet_data.get('age_month'), pet_data.get('description'), pet_data.get('image'), pet_condition_id))
+            pet_data.get('name'), pet_data.get('type'), pet_data.get('breed'), pet_data.get('gender'),
+            pet_data.get('age_month'), pet_data.get('description'), pet_data.get('image'), pet_condition_id))
 
         connection.commit()
 
-        return jsonify({"message": "Pet added successfully"}), 200
+        return jsonify({"message": "Pet added successfully"}), 201
 
     except Error as e:
         connection.rollback()
@@ -718,11 +806,11 @@ def admin_add_pet():
             connection.close()
 
 
-@app.route('/api/v1/admin/getAdopters', methods=['POST'])
-def get_adopters():
+@app.route('/api/v1/admin/getUsers', methods=['POST'])
+def get_Userss():
     data = request.json
     user = data.get('user')
-    adopter_id = user.get('adopter_id')
+    user_id = user.get('user_id')
     connection = get_db_connection()
 
     if connection is None:
@@ -730,16 +818,16 @@ def get_adopters():
 
     try:
         cursor = connection.cursor(dictionary=True)
-        cursor.execute("SELECT role FROM Adoptor WHERE adopter_id = %s", (adopter_id,))
+        cursor.execute("SELECT role FROM Users WHERE user_id = %s", (user_id,))
         user_role = cursor.fetchone()
 
         if user_role.get("role") != "admin":
             return jsonify({"error": "Invalid Permissions"}), 400
 
-        cursor.execute("SELECT adopter_id, name, role FROM Adoptor")
-        adopters = cursor.fetchall()
+        cursor.execute("SELECT user_id, username, role FROM Users")
+        users = cursor.fetchall()
 
-        return jsonify({"adopters": adopters}), 200
+        return jsonify({"users": users}), 200
 
     except Error as e:
         return jsonify({"error": str(e)}), 500
@@ -750,11 +838,11 @@ def get_adopters():
             connection.close()
 
 
-@app.route('/api/v1/admin/addAdopter', methods=['POST'])
-def add_adopter():
+@app.route('/api/v1/admin/addUser', methods=['POST'])
+def admin_add_user():
     data = request.json
     user = data.get('user')
-    new_adopter = data.get('newAdopter')
+    new_user = data.get('newUser')
 
     connection = get_db_connection()
 
@@ -764,21 +852,30 @@ def add_adopter():
     try:
         cursor = connection.cursor(dictionary=True)
 
-        cursor.execute("SELECT role FROM Adoptor WHERE adopter_id = %s", (user.get('adopter_id'),))
+        cursor.execute("SELECT role FROM Users WHERE user_id = %s", (user.get('user_id'),))
         user_role = cursor.fetchone()
 
         if user_role.get("role") != "admin":
             return jsonify({"error": "Invalid Permissions"}), 400
 
+        # Validate new user input
+        if not isinstance(new_user, dict) or 'username' not in new_user or 'password' not in new_user or 'role' not in new_user:
+            return jsonify({"error": "Missing required fields in newUser"}), 400
+
+        if not new_user['username'] or not new_user['password'] or not new_user['role']:
+            return jsonify({"error": "Username, password, and role are required"}), 400
+
+        # Hash the password
+        hashed_password = generate_password_hash(new_user['password'])
+
         cursor.execute("""
-            INSERT INTO Adoptor (name, password, role) 
+            INSERT INTO Users (username, password, role) 
             VALUES (%s, %s, %s)
-        """, (new_adopter['name'], new_adopter['password'],
-              'adopter'))  # need change this on sql side to make default value be adopter
+        """, (new_user['username'], hashed_password, 'adopter'))
 
         connection.commit()
 
-        return jsonify({"message": "Adopter added successfully"}), 201
+        return jsonify({"message": "User added successfully"}), 201
 
     except Error as e:
         return jsonify({"error": str(e)}), 500
@@ -789,11 +886,11 @@ def add_adopter():
             connection.close()
 
 
-@app.route('/api/v1/admin/updateAdopterRole', methods=['POST'])
-def update_adopter_role():
+@app.route('/api/v1/admin/updateUsersRole', methods=['POST'])
+def update_Users_role():
     data = request.json
     user = data.get('user')
-    adopter_id = data.get('adopterId')
+    user_id = data.get('userId')
     new_role = data.get('newRole')
 
     connection = get_db_connection()
@@ -803,13 +900,13 @@ def update_adopter_role():
     try:
         cursor = connection.cursor(dictionary=True)
 
-        cursor.execute("SELECT role FROM Adoptor WHERE adopter_id = %s", (user.get('adopter_id'),))
+        cursor.execute("SELECT role FROM Users WHERE user_id = %s", (user.get('user_id'),))
         user_role = cursor.fetchone()
 
         if user_role.get("role") != "admin":
             return jsonify({"error": "Invalid Permissions"}), 400
 
-        cursor.execute("UPDATE Adoptor SET role = %s WHERE adopter_id = %s", (new_role, adopter_id))
+        cursor.execute("UPDATE Users SET role = %s WHERE user_id = %s", (new_role, user_id))
         connection.commit()
         return jsonify({"message": "Role updated successfully"}), 200
     except Error as e:

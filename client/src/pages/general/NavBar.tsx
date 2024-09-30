@@ -11,7 +11,7 @@ export default function NavBar(): JSX.Element {
     const user = sessionStorage.getItem("user");
     if (user) {
       const parsedUser = JSON.parse(user);
-      setAdopterName(parsedUser.name);
+      setAdopterName(parsedUser.username);
       setRole(parsedUser.role);
     }
   }, []);

@@ -4,8 +4,10 @@ export default function PetCard({
   petDetails,
   setTogglePetConditions,
   favouritedPets,
+  reservedPets,
 }: any): JSX.Element {
   const [isFavourite, setIsFavourite] = useState<boolean>(false);
+  const [isReserved, setIsReserved] = useState<boolean>(false);
 
   // useEffect to check if pet is already favourite
   useEffect(() => {
@@ -17,6 +19,11 @@ export default function PetCard({
         : false;
     setIsFavourite(isAlreadyFavourite);
   }, [favouritedPets, petDetails]);
+
+  useEffect(() => {
+  const isPetReserved = reservedPets.some((reservedPet: any) => reservedPet.pet_id === petDetails.pet_id);
+  setIsReserved(isPetReserved);
+}, [reservedPets, petDetails.pet_id]);
 
   // Function to handle adding the pet to favourites
   const handleAddToFavourites = async () => {
@@ -35,7 +42,7 @@ export default function PetCard({
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ pet_id: petDetails.pet_id, adopter_id: user.adopter_id }),
+          body: JSON.stringify({ pet_id: petDetails.pet_id, user_id: user.user_id }),
         }
       );
 
@@ -61,7 +68,7 @@ export default function PetCard({
       },
       body: JSON.stringify({
         pet_id: petDetails.pet_id,
-        adopter_id: JSON.parse(user).adopter_id,
+        user_id: JSON.parse(user).user_id,
       }),
     });
 
@@ -118,12 +125,17 @@ export default function PetCard({
             View Pet Conditions
           </button>
           <button
-            className="bg-blue-500 text-white px-4 py-2 rounded-lg transition ease-in-out hover:scale-110 hover:bg-indigo-500 duration-300"
+            className={`bg-blue-500 text-white px-4 py-2 rounded-lg transition ease-in-out hover:scale-110 hover:bg-indigo-500 duration-300 ${
+              isReserved ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
             onClick={() => {
-              reservePet();
+              if (!isReserved) {
+                reservePet();
+              }
             }}
+            disabled={isReserved}
           >
-            Reserve Pet
+            {isReserved ? 'Pet Reserved' : 'Reserve Pet'}
           </button>
           <button
             className={`${

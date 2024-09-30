@@ -15,8 +15,7 @@ export default function FavouritesPage(): JSX.Element {
     setLoading(true);
     try {
       const user = JSON.parse(sessionStorage.getItem("user"));
-      console.log(user);
-      const response = await fetch(`http://127.0.0.1:5000/api/v1/getFavourites?adopter_id=${user.adopter_id}`, {
+      const response = await fetch(`http://127.0.0.1:5000/api/v1/getFavourites?user_id=${user.user_id}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

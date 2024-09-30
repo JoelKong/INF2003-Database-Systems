@@ -25,7 +25,7 @@ export default function AdminManagePetsPage() {
   async function getPets() {
     setLoading(true);
     try {
-      const response = await fetch("http://127.0.0.1:5000/api/v1/getpets");
+      const response = await fetch("http://127.0.0.1:5000/api/v1/getPets");
       const data = await response.json();
       setPets(data);
     } catch (error) {
@@ -73,7 +73,7 @@ export default function AdminManagePetsPage() {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ pet_data: petData, user_id: user.adopter_id }),
+          body: JSON.stringify({ pet_data: petData, user_id: user.user_id }),
         }
       );
 
@@ -114,7 +114,7 @@ export default function AdminManagePetsPage() {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ pet_data: petData, user_id: user.adopter_id }),
+          body: JSON.stringify({ pet_data: petData, user_id: user.user_id }),
         }
       );
 

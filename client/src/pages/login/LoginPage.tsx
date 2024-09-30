@@ -31,11 +31,11 @@ export default function LoginPage(): JSX.Element {
 
       const data = await response.json();
 
-      const { adopter_id, name, role } = data.user;
+      const { user_id, username: loggedInUsername, role } = data.user;
 
       sessionStorage.setItem(
         "user",
-        JSON.stringify({ adopter_id, name, role })
+        JSON.stringify({ user_id, username: loggedInUsername, role })
       );
 
       console.log("Login success:", data);
