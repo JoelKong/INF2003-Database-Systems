@@ -1,6 +1,7 @@
 import React, {useState, useEffect} from 'react';
 import AdminNavBar from "./AdminNavbar.tsx";
 import {Link, useNavigate} from "react-router-dom";
+import Loader from "../general/Loader.tsx";
 
 interface User {
   user_id: number;
@@ -56,6 +57,8 @@ function AdminManageUsersPage() {
   return (
     <>
       <AdminNavBar/>
+      {loading && <Loader message="Fetching users..." />}
+
       <div className="container mx-auto mt-8">
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-2xl font-bold">Manage Users</h1>
@@ -67,7 +70,6 @@ function AdminManageUsersPage() {
           </Link>
         </div>
 
-        {loading && <p>Loading users...</p>}
         {error && <p className="text-red-500">{error}</p>}
         {!loading && !error && (
           <table className="min-w-full bg-white border border-gray-300">

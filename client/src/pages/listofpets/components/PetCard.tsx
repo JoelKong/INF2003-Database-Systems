@@ -3,8 +3,8 @@ import { useState, useEffect } from "react";
 export default function PetCard({
   petDetails,
   setTogglePetConditions,
-  favouritedPets,
-  reservedPets,
+  favouritedPets = [],
+  reservedPets = [],
 }: any): JSX.Element {
   const [isFavourite, setIsFavourite] = useState<boolean>(false);
   const [isReserved, setIsReserved] = useState<boolean>(false);

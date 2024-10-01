@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import AdminNavBar from "./AdminNavbar.tsx";
+import Loader from "../general/Loader.tsx";
 
 interface User {
   user_id: number;
@@ -9,26 +10,26 @@ interface User {
 }
 
 function AdminManageUserPage() {
-  const { userId } = useParams<{ userId: string }>();
-  const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [updateMessage, setUpdateMessage] = useState<string | null>(null);
 
+  const { user_id } = useParams<{ user_id: string }>();
+
   useEffect(() => {
     fetchUserDetails();
-  }, [userId]);
+  }, [user_id]);
 
   const fetchUserDetails = async () => {
     try {
-      const adminUser = JSON.parse(sessionStorage.getItem('user') || '{}');
-      const response = await fetch(`http://127.0.0.1:5000/api/v1/admin/getUser/${userId}`, {
+      const user = JSON.parse(sessionStorage.getItem('user') || '{}');
+      const response = await fetch(`http://127.0.0.1:5000/api/v1/admin/getUser/${user_id}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ admin_id: adminUser.user_id }),
+        body: JSON.stringify({ user_id: user.user_id }),
       });
 
       if (!response.ok) {
@@ -85,13 +86,14 @@ function AdminManageUserPage() {
     }
   };
 
-  if (loading) return <p>Loading user details...</p>;
   if (error) return <p className="text-red-500">{error}</p>;
   if (!user) return <p>User not found</p>;
 
   return (
     <>
       <AdminNavBar />
+      {loading && <Loader message="Fetching user..." />}
+
       <div className="container mx-auto mt-8">
         <h1 className="text-2xl font-bold mb-4">Manage User: {user.username}</h1>
         {updateMessage && <p className="text-green-500 mb-4">{updateMessage}</p>}

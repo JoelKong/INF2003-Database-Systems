@@ -3,7 +3,7 @@ from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
 from mysql.connector import Error, connect
 from dotenv import load_dotenv
-from datetime import datetime
+from datetime import datetime, date
 import os
 
 # Load ur environment variables
@@ -936,11 +936,11 @@ def admin_get_user(user_id):
 @app.route('/api/v1/admin/updateUser/<int:user_id>', methods=['POST'])
 def admin_update_user(user_id):
     data = request.json
-    admin_id = data.get('admin_id')
+    user_id = data.get('user_id')
     username = data.get('username')
     role = data.get('role')
 
-    if not all([admin_id, username, role]):
+    if not all([user_id, username, role]):
         return jsonify({"error": "All fields are required"}), 400
 
     connection = get_db_connection()
@@ -1021,6 +1021,138 @@ def admin_get_applications():
             "status": "error",
             "message": str(e)
         }), 500
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+
+
+@app.route('/api/v1/admin/getApplications/<int:application_id>', methods=['POST'])
+def admin_get_application_detail(application_id):
+    data = request.json
+    user_id = data.get('user_id')
+
+    connection = get_db_connection()
+    if connection is None:
+        return jsonify({"error": "Database connection failed"}), 500
+
+    try:
+        cursor = connection.cursor(dictionary=True)
+
+        cursor.execute("SELECT role FROM Users WHERE user_id = %s", (user_id,))
+        admin_role = cursor.fetchone()
+
+        if not admin_role or admin_role.get("role") != "admin":
+            return jsonify({"error": "Invalid Permissions"}), 403
+
+        query = """
+        SELECT 
+            a.application_id,
+            a.submission_date,
+            a.status,
+            p.pet_id,
+            p.name AS pet_name,
+            p.type AS pet_type,
+            p.breed,
+            p.gender,
+            p.age_month,
+            p.description AS pet_description,
+            p.image AS pet_image,
+            u.user_id AS applicant_id,
+            u.username AS applicant_username
+        FROM 
+            Applications a
+        INNER JOIN 
+            Pet_Info p ON a.pet_id = p.pet_id
+        INNER JOIN 
+            Users u ON a.user_id = u.user_id
+        WHERE 
+            a.application_id = %s
+        """
+        cursor.execute(query, (application_id,))
+        application = cursor.fetchone()
+
+        if application:
+            # Convert datetime to string
+            if 'submission_date' in application and isinstance(application['submission_date'], datetime):
+                application['submission_date'] = application['submission_date'].isoformat()
+
+            # Convert any set to list
+            for key, value in application.items():
+                if isinstance(value, set):
+                    application[key] = list(value)
+
+            return jsonify({
+                "status": "success",
+                "application": application
+            })
+        else:
+            return jsonify({
+                "status": "error",
+                "message": "Application not found"
+            }), 404
+
+    except Error as e:
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
+
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+
+
+@app.route('/api/v1/admin/updateApplicationStatus/<int:application_id>', methods=['POST'])
+def update_application_status(application_id):
+    data = request.json
+    new_status = data.get('status')
+    user_id = data.get('user_id')
+
+    connection = get_db_connection()
+    if connection is None:
+        return jsonify({"error": "Database connection failed"}), 500
+
+    try:
+        cursor = connection.cursor(dictionary=True)
+
+        cursor.execute("SELECT role FROM Users WHERE user_id = %s", (user_id,))
+        admin_role = cursor.fetchone()
+
+        if not admin_role or admin_role.get("role") != "admin":
+            return jsonify({"error": "Invalid Permissions"}), 403
+
+        # update the application status
+        update_query = """
+        UPDATE Applications 
+        SET status = %s 
+        WHERE application_id = %s
+        """
+        cursor.execute(update_query, (new_status, application_id))
+
+        if new_status == 'approved':
+            insert_query = """
+            INSERT INTO Adoptions (application_id, adoption_date)
+            VALUES (%s, %s)
+            """
+            today = date.today()
+            cursor.execute(insert_query, (application_id, today))
+
+        connection.commit()
+
+        return jsonify({
+            "status": "success",
+            "message": "Application status updated successfully"
+        })
+
+
+    except Error as e:
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
+
     finally:
         if connection.is_connected():
             cursor.close()

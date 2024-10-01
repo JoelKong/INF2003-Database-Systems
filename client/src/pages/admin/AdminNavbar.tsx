@@ -43,6 +43,18 @@ export default function AdminNavBar(): JSX.Element {
             >
               Manage Users
             </Link>
+            <Link
+              to={"/admin/applications"}
+              className="text-gray-700 hover:text-blue-500"
+            >
+              Manage Applications
+            </Link>
+            <Link
+              to={"#"}
+              className="text-gray-700 hover:text-blue-500"
+            >
+              Manage Adoptions
+            </Link>
           </div>
 
           {adopterName ? (

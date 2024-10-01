@@ -16,6 +16,7 @@ import AdminManageUsersPage from "./pages/admin/AdminManageUsersPage.tsx";
 import AdminAddUserPage from "./pages/admin/AdminAddUserPage.tsx";
 import AdminManageUserPage from "./pages/admin/AdminManageUserPage.tsx";
 import AdminApplicationsPage from "./pages/admin/AdminApplicationsPage.tsx";
+import AdminPetApplicationPage from "./pages/admin/AdminPetApplicationPage.tsx";
 
 function App() {
   return (
@@ -35,8 +36,9 @@ function App() {
             <Route path="/admin/managepets" element={<AdminManagePetsPage/>}/>
             <Route path="/admin/manage-users" element={<AdminManageUsersPage/>} />
             <Route path="/admin/add-user" element={<AdminAddUserPage/>} />
-            <Route path="/admin/manage-user/:userId" element={<AdminManageUserPage />} />
+            <Route path="/admin/manage-user/:user_id" element={<AdminManageUserPage />} />
             <Route path="/admin/applications" element={<AdminApplicationsPage />} />
+            <Route path="/admin/applications/:application_id" element={<AdminPetApplicationPage />} />
           </Routes>
         </BackgroundWrapper>
       </Router>
