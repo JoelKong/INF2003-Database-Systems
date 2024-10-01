@@ -778,7 +778,7 @@ def admin_add_pet():
         formatted_vaccination_date = vaccination_date.strftime('%Y-%m-%d')
 
         query_pets_condition = """
-        INSERT INTO pets.Pet_Condition (weight, vaccination_date, health_condition, sterilisation_status, adoption_fee, previous_owner)
+        INSERT INTO Pet_Condition (weight, vaccination_date, health_condition, sterilisation_status, adoption_fee, previous_owner)
         VALUES (%s, %s, %s, %s, %s, %s);
         """
         cursor.execute(query_pets_condition, (
@@ -788,7 +788,7 @@ def admin_add_pet():
         pet_condition_id = cursor.fetchone().get('LAST_INSERT_ID()')
 
         query_pets_info = """
-        INSERT INTO pets.Pet_Info (name, type, breed, gender, age_month, description, image, pet_condition_id)
+        INSERT INTO Pet_Info (name, type, breed, gender, age_month, description, image, pet_condition_id)
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
         """
         cursor.execute(query_pets_info, (
@@ -797,7 +797,7 @@ def admin_add_pet():
 
         connection.commit()
 
-        return jsonify({"message": "Pet added successfully"}), 201
+        return jsonify({"message": "Pet added successfully"}), 200
 
     except Error as e:
         connection.rollback()
