@@ -21,7 +21,6 @@ def get_db_connection():
                        database=os.getenv('DATABASENAME'),
                        user=os.getenv('DATABASEUSER'),
                        password=os.getenv('DATABASEPASSWORD'))
-        print("Successfully connected to the database")
         return conn
     except Error as err:
         print(f"Error connecting to the database: {err}")
@@ -421,7 +420,6 @@ def addToCart():
         return jsonify(pet_id), 200
 
     except Error as e:
-        print(e)
         return jsonify({"error": str(e)}), 500
 
     finally:
@@ -459,7 +457,6 @@ def getCart():
         return jsonify(cart), 200
 
     except Error as e:
-        print(e)
         return jsonify({"error": str(e)}), 500
 
     finally:
@@ -495,7 +492,6 @@ def removeFromCart():
         return jsonify("Success"), 200
 
     except Error as e:
-        print(e)
         return jsonify({"error": str(e)}), 500
 
     finally:
@@ -544,7 +540,6 @@ def confirmReservation():
         return jsonify("Success"), 200
 
     except Error as e:
-        print(e)
         return jsonify({"error": str(e)}), 500
 
     finally:
@@ -564,8 +559,6 @@ def admin_register():
     data = request.json
     username = data.get('username')
     password = data.get('password')
-
-    print(username, password)
 
     if not username or not password:
         return jsonify({"error": "Missing username or password"}), 400
@@ -1109,6 +1102,8 @@ def update_application_status(application_id):
     data = request.json
     new_status = data.get('status')
     user_id = data.get('user_id')
+    pet_id = data.get('pet_id')
+
 
     connection = get_db_connection()
     if connection is None:
@@ -1130,16 +1125,17 @@ def update_application_status(application_id):
         WHERE application_id = %s
         """
         cursor.execute(update_query, (new_status, application_id))
+        connection.commit()
 
         if new_status == 'approved':
             insert_query = """
-            INSERT INTO Adoptions (application_id, adoption_date)
-            VALUES (%s, %s)
-            """
+                    INSERT INTO Adoptions (application_id, pet_id, user_id, adoption_date)
+                    VALUES (%s, %s, %s, %s)
+                    """
             today = date.today()
-            cursor.execute(insert_query, (application_id, today))
-
-        connection.commit()
+            cursor.execute(insert_query,
+                           (application_id, pet_id, user_id, today))
+            connection.commit()
 
         return jsonify({
             "status": "success",
@@ -1158,6 +1154,79 @@ def update_application_status(application_id):
             cursor.close()
             connection.close()
 
+
+@app.route('/api/v1/admin/getAdoptions', methods=['POST'])
+def admin_get_adoptions():
+    data = request.json
+    user_id = data.get('user_id')
+
+    if not user_id:
+        return jsonify({"error": "User ID is required"}), 400
+
+    connection = get_db_connection()
+    if connection is None:
+        return jsonify({"error": "Database connection failed"}), 500
+
+    try:
+        cursor = connection.cursor(dictionary=True)
+        cursor.execute("SELECT role FROM Users WHERE user_id = %s", (user_id,))
+        user_role = cursor.fetchone()
+
+        if not user_role or user_role.get("role") != "admin":
+            return jsonify({"error": "Invalid Permissions"}), 403
+
+        query = """
+                SELECT 
+                    a.adoption_id,
+                    a.adoption_date,
+                    u.user_id AS adopter_id,
+                    u.username AS adopter_name,
+                    p.pet_id,
+                    p.name AS pet_name,
+                    p.type AS pet_type,
+                    p.breed AS pet_breed,
+                    app.application_id,
+                    app.submission_date AS application_date,
+                    app.status AS application_status
+                FROM 
+                    Adoptions a
+                JOIN 
+                    Users u ON a.user_id = u.user_id
+                JOIN 
+                    Pet_Info p ON a.pet_id = p.pet_id
+                JOIN 
+                    Applications app ON a.application_id = app.application_id
+                ORDER BY 
+                    a.adoption_date DESC
+                """
+        cursor.execute(query)
+        adoptions = cursor.fetchall()
+
+        # convert date objects to strings for JSON serialization
+        for adoption in adoptions:
+            for key, value in adoption.items():
+                if isinstance(value, (datetime, date)):
+                    adoption[key] = value.isoformat()
+                elif isinstance(value, set):
+                    adoption[key] = list(value)  # Convert set to list
+                elif not isinstance(value, (str, int, float, bool, type(None))):
+                    adoption[key] = str(value)
+
+        return jsonify({
+            "status": "success",
+            "adoptions": adoptions
+        })
+
+    except Error as e:
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
+
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
 
 if __name__ == '__main__':
     app.run(debug=True)
