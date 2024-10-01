@@ -65,7 +65,7 @@ function AdminPetApplicationPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ status, user_id: user.user_id }),
+        body: JSON.stringify({ status, user_id: user.user_id, pet_id: application.pet_id }),
       });
 
       const data = await response.json();
@@ -84,13 +84,13 @@ function AdminPetApplicationPage() {
     }
   };
 
+  if (loading) return <Loader message="Fetching Application Details..." />
   if (error) return <div className="text-center mt-8 text-red-500">Error: {error}</div>;
   if (!application) return <div className="text-center mt-8">No application found</div>;
 
   return (
     <>
       <AdminNavBar />
-      {loading && <Loader message="Fetching Application Details..." />}
 
       <main className="flex justify-center items-center min-h-screen bg-gray-100 p-4">
         <div className="bg-white shadow-xl rounded-lg overflow-hidden max-w-2xl w-full">

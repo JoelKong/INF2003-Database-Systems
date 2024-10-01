@@ -1,6 +1,7 @@
 import {useState, useEffect} from 'react';
 import AdminNavBar from "./AdminNavbar";
 import Loader from "../general/Loader.tsx";
+import {Link} from "react-router-dom";
 
 interface Application {
   application_id: number;
@@ -67,6 +68,7 @@ function AdminApplicationsPage() {
               <th scope="col" className="px-6 py-3">Pet</th>
               <th scope="col" className="px-6 py-3">Submission Date</th>
               <th scope="col" className="px-6 py-3">Status</th>
+              <th scope="col" className="px-6 py-3">Action</th>
             </tr>
             </thead>
             <tbody>
@@ -84,6 +86,14 @@ function AdminApplicationsPage() {
             }`}>
               {app.status}
             </span>
+                </td>
+                <td className="px-6 py-4">
+                  <Link
+                    to={`/admin/applications/${app.application_id}`}
+                    className="font-medium text-blue-600 hover:underline"
+                  >
+                    View Details
+                  </Link>
                 </td>
               </tr>
             ))}

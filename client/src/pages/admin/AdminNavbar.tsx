@@ -50,7 +50,7 @@ export default function AdminNavBar(): JSX.Element {
               Manage Applications
             </Link>
             <Link
-              to={"#"}
+              to={"/admin/manage-adoptions"}
               className="text-gray-700 hover:text-blue-500"
             >
               Manage Adoptions
