@@ -48,8 +48,6 @@ export default function AdminManagePetsPage() {
 
   const handleInputChangeAdd = (e: any) => {
     const { name, value } = e.target;
-    console.log(name)
-    console.log(value)
     setToggleAddPet((prev: any) => ({
       ...prev,
       data: { ...prev.data, [name]: value },
@@ -137,12 +135,11 @@ export default function AdminManagePetsPage() {
   }
 
   useEffect(() => {
-    const user = sessionStorage.getItem("user");
-    if (user) {
-      const parsedUser = JSON.parse(user);
-      if (parsedUser.role !== "admin") {
-        navigate("/")
-      }
+    const user: any = sessionStorage.getItem("user");
+
+    const parsedUser = JSON.parse(user);
+    if (parsedUser.role !== "admin") {
+      navigate("/")
     }
 
     getPets()
@@ -231,7 +228,18 @@ export default function AdminManagePetsPage() {
                   </div>
                   <div className="flex flex-row mb-2">
                     <p className="font-bold mr-1">Type: </p>
-                    <input className="border-2 rounded-lg pl-2 pr-2 border-black tracking-wide" name="type" value={toggleAddPet.data.type} onChange={(e: any) => {handleInputChangeAdd(e)}}/>
+                    <select
+                        className="border-2 rounded-lg pl-2 pr-2 border-black tracking-wide"
+                        name="type"
+                        value={toggleAddPet.data.type}
+                        onChange={(e: any) => handleInputChangeAdd(e)}
+                      >
+                        <option value="">Choose one</option>
+                        <option value="Rabbit">Rabbit</option>
+                        <option value="Dog">Dog</option>
+                        <option value="Cat">Cat</option>
+                        <option value="Bird">Bird</option>
+                    </select>
                   </div>
                   <div className="flex flex-row mb-2">
                     <p className="font-bold mr-1">Breed: </p>
@@ -239,7 +247,16 @@ export default function AdminManagePetsPage() {
                   </div>
                   <div className="flex flex-row mb-2">
                     <p className="font-bold mr-1">Gender: </p>
-                    <input className="border-2 rounded-lg pl-2 pr-2 border-black tracking-wide" name="gender" value={toggleAddPet.data.gender} onChange={(e: any) => {handleInputChangeAdd(e)}}/>
+                    <select
+                      className="border-2 rounded-lg pl-2 pr-2 border-black tracking-wide"
+                      name="gender"
+                      value={toggleAddPet.data.gender}
+                      onChange={(e: any) => handleInputChangeAdd(e)}
+                    >
+                      <option value="">Choose one</option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                    </select>
                   </div>
                   <div className="flex flex-row mb-2">
                     <p className="font-bold mr-1">Age: </p>
@@ -314,16 +331,35 @@ export default function AdminManagePetsPage() {
                   </div>
                   <div className="flex flex-row mb-2">
                     <p className="font-bold mr-1">Type: </p>
-                    <input className="border-2 rounded-lg pl-2 pr-2 border-black tracking-wide" name="type" value={editPetToggle.data.type} onChange={(e: any) => {handleInputChange(e)}}/>
-                  </div>
+                    <select
+                        className="border-2 rounded-lg pl-2 pr-2 border-black tracking-wide"
+                        name="type"
+                        value={editPetToggle.data.type}
+                        onChange={(e: any) => handleInputChange(e)}
+                      >
+                        <option value="">Choose one</option>
+                        <option value="Rabbit">Rabbit</option>
+                        <option value="Dog">Dog</option>
+                        <option value="Cat">Cat</option>
+                        <option value="Bird">Bird</option>
+                    </select>
+                    </div>
                   <div className="flex flex-row mb-2">
                     <p className="font-bold mr-1">Breed: </p>
                     <input className="border-2 rounded-lg pl-2 pr-2 border-black tracking-wide" name="breed" value={editPetToggle.data.breed} onChange={(e: any) => {handleInputChange(e)}}/>
                   </div>
                   <div className="flex flex-row mb-2">
                     <p className="font-bold mr-1">Gender: </p>
-                    <input className="border-2 rounded-lg pl-2 pr-2 border-black tracking-wide" name="gender" value={editPetToggle.data.gender} onChange={(e: any) => {handleInputChange(e)}}/>
-                  </div>
+                    <select
+                      className="border-2 rounded-lg pl-2 pr-2 border-black tracking-wide"
+                      name="gender"
+                      value={editPetToggle.data.gender}
+                      onChange={(e: any) => handleInputChange(e)}
+                    >
+                      <option value="">Choose one</option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                    </select>                  </div>
                   <div className="flex flex-row mb-2">
                     <p className="font-bold mr-1">Age: </p>
                     <input className="border-2 rounded-lg pl-2 pr-2 border-black tracking-wide" name="age_month" value={editPetToggle.data.age_month} onChange={(e: any) => {handleInputChange(e)}}/>
@@ -363,7 +399,7 @@ export default function AdminManagePetsPage() {
                   editPet(e, editPetToggle.data)
                 }
               >
-                Update Pet
+                Edit Pet
               </button>
             </div>
           </div>
@@ -380,7 +416,7 @@ export default function AdminManagePetsPage() {
             setToggleAddPet({ toggle: true, data: {} })
           }
         >
-          Add New Pet
+          Add Pet
         </button>
         <div
           className="w-full mt-4 pl-6 pr-6 h-full flex flex-row flex-wrap justify-evenly overflow-y-scroll overflow-x-hidden"
