@@ -9,7 +9,7 @@ export default function PetCard({
   const [isFavourite, setIsFavourite] = useState<boolean>(false);
   const [isReserved, setIsReserved] = useState<boolean>(false);
 
-  // useEffect to check if pet is already favourite
+  // Check if pet is already favourite
   useEffect(() => {
     const isAlreadyFavourite =
       favouritedPets && favouritedPets.length > 0
@@ -20,14 +20,17 @@ export default function PetCard({
     setIsFavourite(isAlreadyFavourite);
   }, [favouritedPets, petDetails]);
 
+  // Check if pet is reserved
   useEffect(() => {
-  const isPetReserved = reservedPets.some((reservedPet: any) => reservedPet.pet_id === petDetails.pet_id);
-  setIsReserved(isPetReserved);
-}, [reservedPets, petDetails.pet_id]);
+    const isPetReserved = reservedPets.some(
+      (reservedPet: any) => reservedPet.pet_id === petDetails.pet_id
+    );
+    setIsReserved(isPetReserved);
+  }, [reservedPets, petDetails.pet_id]);
 
   // Function to handle adding the pet to favourites
   const handleAddToFavourites = async () => {
-    const userSession: any = sessionStorage.getItem("user")
+    const userSession: any = sessionStorage.getItem("user");
     const user = JSON.parse(userSession);
     if (!user) {
       alert("You need to log in to add pets to favourites.");
@@ -42,7 +45,10 @@ export default function PetCard({
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ pet_id: petDetails.pet_id, user_id: user.user_id }),
+          body: JSON.stringify({
+            pet_id: petDetails.pet_id,
+            user_id: user.user_id,
+          }),
         }
       );
 
@@ -74,6 +80,7 @@ export default function PetCard({
 
     if (response.status === 200) {
       alert(`${petDetails.name} has been added to cart.`);
+      setIsReserved(true);
     } else {
       const data = await response.json();
       alert(data.error || `${petDetails.name} is already in your cart.`);
@@ -112,6 +119,10 @@ export default function PetCard({
           <div className="flex flex-row mb-2">
             <p className="font-bold mr-1">Age: </p> {petDetails.age_month} month
           </div>
+          <div className="flex flex-row mb-2">
+            <p className="font-bold mr-1">Adoption Status: </p>{" "}
+            {petDetails.adoption_status}
+          </div>
           <p>{petDetails.description}</p>
         </div>
 
@@ -126,16 +137,22 @@ export default function PetCard({
           </button>
           <button
             className={`bg-blue-500 text-white px-4 py-2 rounded-lg transition ease-in-out hover:scale-110 hover:bg-indigo-500 duration-300 ${
-              isReserved ? 'opacity-50 cursor-not-allowed' : ''
+              isReserved || petDetails.adoption_status === 'Unavailable'
+                ? 'opacity-50 cursor-not-allowed'
+                : ''
             }`}
             onClick={() => {
-              if (!isReserved) {
+              if (!isReserved && petDetails.adoption_status !== 'Unavailable') {
                 reservePet();
               }
             }}
-            disabled={isReserved}
+            disabled={isReserved || petDetails.adoption_status === 'Unavailable'}
           >
-            {isReserved ? 'Pet Reserved' : 'Reserve Pet'}
+            {isReserved
+              ? 'Pet Reserved'
+              : petDetails.adoption_status === 'Unavailable'
+              ? 'Unavailable for Adoption!'
+              : 'Reserve Pet'}
           </button>
           <button
             className={`${
