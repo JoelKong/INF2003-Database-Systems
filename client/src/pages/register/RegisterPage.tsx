@@ -4,16 +4,16 @@ import {useState} from "react";
 
 export default function RegisterPage(): JSX.Element {
   const navigate = useNavigate();
-  const [name, setName] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    handleRegister(name, password);
+    handleRegister(username, password);
   };
 
-  async function handleRegister(name: string, password: string) {
+  async function handleRegister(username: string, password: string) {
     setLoading(true);
     try {
       const response = await fetch("http://127.0.0.1:5000/api/v1/register", {
@@ -21,7 +21,7 @@ export default function RegisterPage(): JSX.Element {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({name, password}),
+        body: JSON.stringify({username, password}),
         credentials: 'include'
       });
 
@@ -54,9 +54,9 @@ export default function RegisterPage(): JSX.Element {
             <input
               className="w-full mb-4 p-2 rounded"
               type="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Name"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Username"
               required
             />
             <input

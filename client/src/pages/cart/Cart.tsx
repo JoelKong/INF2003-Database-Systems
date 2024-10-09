@@ -1,9 +1,11 @@
 import NavBar from "../general/NavBar";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import Loader from "../general/Loader.tsx";
 
 export default function Cart(): JSX.Element {
   const [cart, setCart] = useState<any>([]);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const [togglePetConditions, setTogglePetConditions] = useState<any>({
     toggle: false,
@@ -12,24 +14,25 @@ export default function Cart(): JSX.Element {
 
   async function getCart() {
     const user: any = sessionStorage.getItem("user");
-    const adopter_id = JSON.parse(user).adopter_id;
+    const user_id = JSON.parse(user).user_id;
     const response = await fetch("http://127.0.0.1:5000/api/v1/getcart", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        adopter_id: adopter_id,
+        user_id: user_id,
       }),
     });
 
     const data = await response.json();
     setCart(data);
+    setLoading(false)
   }
 
   async function removeFromCart(pet_id: any) {
     const user: any = sessionStorage.getItem("user");
-    const adopter_id = JSON.parse(user).adopter_id;
+    const user_id = JSON.parse(user).user_id;
     const response = await fetch(
       "http://127.0.0.1:5000/api/v1/removefromcart",
       {
@@ -38,7 +41,7 @@ export default function Cart(): JSX.Element {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          adopter_id: adopter_id,
+          user_id: user_id,
           pet_id: pet_id,
         }),
       }
@@ -53,6 +56,8 @@ export default function Cart(): JSX.Element {
   useEffect(() => {
     getCart();
   }, []);
+
+  if (loading) return <Loader message="loading cart..." />
 
   return (
     <div className="h-screen w-screen">
@@ -125,7 +130,7 @@ export default function Cart(): JSX.Element {
             {cart.length > 0 ? (
               cart.map((pet: any) => {
                 return (
-                  <article className="w-96 h-full border-2 rounded-lg shadow-xl mb-4">
+                  <article className="w-96 h-full border-2 rounded-lg shadow-xl mb-4" key={pet.pet_id}>
                     <div className="w-full h-2/6 border-b-2">
                       <img
                         className="w-full h-full object-cover"

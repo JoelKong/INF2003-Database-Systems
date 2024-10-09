@@ -9,7 +9,7 @@ export default function AdminNavBar(): JSX.Element {
     const user = sessionStorage.getItem("user");
     if (user) {
       const parsedUser = JSON.parse(user);
-      setAdopterName(parsedUser.name);
+      setAdopterName(parsedUser.username);
     }
   }, []);
 
@@ -38,10 +38,22 @@ export default function AdminNavBar(): JSX.Element {
               Manage Pets
             </Link>
             <Link
-              to={"/admin/manageusers"}
+              to={"/admin/manage-users"}
               className="text-gray-700 hover:text-blue-500"
             >
               Manage Users
+            </Link>
+            <Link
+              to={"/admin/applications"}
+              className="text-gray-700 hover:text-blue-500"
+            >
+              Manage Applications
+            </Link>
+            <Link
+              to={"/admin/manage-adoptions"}
+              className="text-gray-700 hover:text-blue-500"
+            >
+              Manage Adoptions
             </Link>
           </div>
 

@@ -1,5 +1,3 @@
-import { useState, useEffect } from "react";
-
 export default function PetCardAdmin({
   petDetails,
   setTogglePetConditions,
@@ -20,7 +18,7 @@ export default function PetCardAdmin({
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify({ pet_id: petDetails.pet_id, user_id: user.adopter_id }),
+            body: JSON.stringify({ pet_id: petDetails.pet_id, user_id: user.user_id }),
           }
         );
   
@@ -89,7 +87,7 @@ export default function PetCardAdmin({
               setEditPetToggle({ toggle: true, data: petDetails })
             }}
           >
-            Edit Pet Details
+            Edit Pet
           </button>
           <button
             className={`bg-red-500 text-white px-4 py-2 rounded-lg transition ease-in-out hover:scale-110 hover:bg-indigo-500 duration-300`}

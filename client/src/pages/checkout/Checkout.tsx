@@ -9,16 +9,16 @@ export default function Checkout(): JSX.Element {
   async function confirmReservation(e: any) {
     e.preventDefault();
     const user: any = sessionStorage.getItem("user");
-    const adopter_id: string = JSON.parse(user).adopter_id;
+    const user_id: string = JSON.parse(user).user_id;
     const response = await fetch(
-      "http://127.0.0.1:5000/api/v1/confirmreservation",
+      "http://127.0.0.1:5000/api/v1/confirmReservation",
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          adopter_id: adopter_id,
+          user_id: user_id,
           cart: cart,
         }),
       }
