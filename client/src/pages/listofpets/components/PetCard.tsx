@@ -87,6 +87,8 @@ export default function PetCard({
     }
   }
 
+  console.log(petDetails)
+
   return (
     <>
       <article className="w-96 h-full border-2 rounded-lg shadow-xl mb-4">
@@ -136,30 +138,30 @@ export default function PetCard({
             View Pet Conditions
           </button>
           <button
-            className={`bg-blue-500 text-white px-4 py-2 rounded-lg transition ease-in-out hover:scale-110 hover:bg-indigo-500 duration-300 ${
-              isReserved || petDetails.adoption_status === 'Unavailable'
-                ? 'opacity-50 cursor-not-allowed'
-                : ''
-            }`}
-            onClick={() => {
-              if (!isReserved && petDetails.adoption_status !== 'Unavailable') {
-                reservePet();
-              }
-            }}
-            disabled={isReserved || petDetails.adoption_status === 'Unavailable'}
+              className={`bg-blue-500 text-white px-4 py-2 rounded-lg transition ease-in-out hover:scale-110 hover:bg-indigo-500 duration-300 ${
+                  isReserved ? 'opacity-50 cursor-not-allowed' : (petDetails.adoption_status === 'Unavailable' ? 'opacity-75 cursor-not-allowed' : '')
+              }`}
+              onClick={() => {
+                if (!isReserved && petDetails.adoption_status !== 'Unavailable') {
+                  reservePet();
+                }
+              }}
+              disabled={isReserved}
           >
             {isReserved
-              ? 'Pet Reserved'
-              : petDetails.adoption_status === 'Unavailable'
-              ? 'Unavailable for Adoption!'
-              : 'Reserve Pet'}
+                ? 'Unavailable for Adoption!'
+                : petDetails.adoption_status === 'Unavailable'
+                    ? 'Unavailable for Adoption!'
+                    : 'Reserve Pet'}
           </button>
+
+
           <button
-            className={`${
-              isFavourite ? "bg-gray-500" : "bg-red-500"
-            } text-white px-4 py-2 rounded-lg transition ease-in-out hover:scale-110 hover:bg-indigo-500 duration-300`}
-            onClick={() => handleAddToFavourites()}
-            disabled={isFavourite}
+              className={`${
+                  isFavourite ? "bg-gray-500" : "bg-red-500"
+              } text-white px-4 py-2 rounded-lg transition ease-in-out hover:scale-110 hover:bg-indigo-500 duration-300`}
+              onClick={() => handleAddToFavourites()}
+              disabled={isFavourite}
           >
             {isFavourite ? "Added to Favourite" : "Add to Favourite"}
           </button>

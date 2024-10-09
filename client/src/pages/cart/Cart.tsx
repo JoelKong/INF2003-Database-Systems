@@ -1,9 +1,11 @@
 import NavBar from "../general/NavBar";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import Loader from "../general/Loader.tsx";
 
 export default function Cart(): JSX.Element {
   const [cart, setCart] = useState<any>([]);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const [togglePetConditions, setTogglePetConditions] = useState<any>({
     toggle: false,
@@ -25,6 +27,7 @@ export default function Cart(): JSX.Element {
 
     const data = await response.json();
     setCart(data);
+    setLoading(false)
   }
 
   async function removeFromCart(pet_id: any) {
@@ -53,6 +56,8 @@ export default function Cart(): JSX.Element {
   useEffect(() => {
     getCart();
   }, []);
+
+  if (loading) return <Loader message="loading cart..." />
 
   return (
     <div className="h-screen w-screen">

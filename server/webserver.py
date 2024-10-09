@@ -316,11 +316,6 @@ def addFavourite():
 
 @app.route('/api/v1/getReservedPets', methods=['GET'])
 def get_reserved_pets():
-    user_id = request.args.get('user_id')
-
-    if not user_id:
-        return jsonify({"error": "User ID is required"}), 400
-
     connection = get_db_connection()
     cursor = connection.cursor(dictionary=True)
 
@@ -329,12 +324,10 @@ def get_reserved_pets():
         SELECT DISTINCT p.*
         FROM Pet_Info p
         INNER JOIN Applications a ON p.pet_id = a.pet_id
-        WHERE a.user_id = %s
         """
-        cursor.execute(query, (user_id,))
+        cursor.execute(query)
         pets_in_applications = cursor.fetchall()
 
-        # Convert sets to lists
         for pet in pets_in_applications:
             if isinstance(pet.get('type'), set):
                 pet['type'] = list(pet['type'])
@@ -447,7 +440,6 @@ def getCart():
         """, (user_id,))
         cart = cursor.fetchall()
 
-        # Convert sets to lists
         for pet in cart:
             if isinstance(pet.get('type'), set):
                 pet['type'] = list(pet['type'])
@@ -618,7 +610,6 @@ def admin_login():
 
         cursor.execute("DELETE FROM Pet_Condition WHERE pet_condition_id = %s", (pet_condition_id,))
 
-        # Commit the transaction
         connection.commit()
 
         return jsonify({"message": "Pet deleted successfully"}), 200
@@ -840,6 +831,39 @@ def admin_get_users():
         if connection.is_connected():
             cursor.close()
             connection.close()
+
+
+@app.route('/api/v1/admin/deleteUser/<int:user_id>', methods=['POST'])
+def admin_delete_user(user_id):
+    data = request.json
+    admin_id = data.get('admin_id')
+    user_id = user_id
+
+    connection = get_db_connection()
+    if connection is None:
+        return jsonify({"error": "Database connection failed"}), 500
+
+    try:
+        cursor = connection.cursor(dictionary=True)
+
+        cursor.execute("SELECT role FROM Users WHERE user_id = %s", (admin_id,))
+        user_role = cursor.fetchone()
+
+        if not user_role or user_role.get("role") != "admin":
+            return jsonify({"error": "Invalid Permissions"}), 403
+
+        cursor.execute("DELETE FROM Users WHERE user_id = %s", (user_id,))
+        connection.commit()
+
+        return jsonify({"message": "User deleted successfully"}), 200
+    except Error as e:
+        connection.rollback()
+        return jsonify({"status": "error", "message": str(e)}), 500
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+
 
 
 @app.route('/api/v1/admin/addUser', methods=['POST'])
@@ -1066,11 +1090,9 @@ def admin_get_application_detail(application_id):
         application = cursor.fetchone()
 
         if application:
-            # Convert datetime to string
             if 'submission_date' in application and isinstance(application['submission_date'], datetime):
                 application['submission_date'] = application['submission_date'].isoformat()
 
-            # Convert any set to list
             for key, value in application.items():
                 if isinstance(value, set):
                     application[key] = list(value)
@@ -1100,8 +1122,10 @@ def admin_get_application_detail(application_id):
 @app.route('/api/v1/admin/updateApplicationStatus/<int:application_id>', methods=['POST'])
 def update_application_status(application_id):
     data = request.json
+    print(data)
     new_status = data.get('status')
     user_id = data.get('user_id')
+    applicant_id = data.get('applicant_id')
     pet_id = data.get('pet_id')
 
 
@@ -1132,9 +1156,10 @@ def update_application_status(application_id):
                     INSERT INTO Adoptions (application_id, pet_id, user_id, adoption_date)
                     VALUES (%s, %s, %s, %s)
                     """
+            print("inserted data into adoptions table")
             today = date.today()
             cursor.execute(insert_query,
-                           (application_id, pet_id, user_id, today))
+                           (application_id, pet_id, applicant_id, today))
             connection.commit()
 
         return jsonify({

@@ -65,7 +65,7 @@ function AdminPetApplicationPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ status, user_id: user.user_id, pet_id: application.pet_id }),
+        body: JSON.stringify({ status, user_id: user.user_id, pet_id: application.pet_id, applicant_id: application.applicant_id }),
       });
 
       const data = await response.json();
@@ -87,6 +87,8 @@ function AdminPetApplicationPage() {
   if (loading) return <Loader message="Fetching Application Details..." />
   if (error) return <div className="text-center mt-8 text-red-500">Error: {error}</div>;
   if (!application) return <div className="text-center mt-8">No application found</div>;
+
+  console.log(application.applicant_id)
 
   return (
     <>

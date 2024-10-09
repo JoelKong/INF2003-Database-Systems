@@ -68,7 +68,7 @@ export default function Pets(): JSX.Element {
       const userSession: any = sessionStorage.getItem("user")
       const user: any = JSON.parse(userSession);
       const response = await fetch(
-        `http://127.0.0.1:5000/api/v1/getReservedPets?user_id=${user.user_id}`,
+        `http://127.0.0.1:5000/api/v1/getReservedPets`,
         {
           method: "GET",
           headers: {
