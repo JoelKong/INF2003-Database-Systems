@@ -642,7 +642,7 @@ def admin_edit_pet():
         cursor.execute("SELECT role FROM Users WHERE user_id = %s", (user_id,))
         user_role = cursor.fetchone()
 
-        if user_role.get("role") != "admin":
+        if not user_role or user_role.get("role") != "admin":
             return jsonify({"error": "Invalid Permissions"}), 400
 
         cursor.execute("SELECT pet_condition_id, type FROM Pet_Info WHERE pet_id = %s", (pet_id,))
@@ -652,70 +652,85 @@ def admin_edit_pet():
             return jsonify({"error": "Pet not found"}), 404
 
         pet_condition_id = result.get("pet_condition_id")
-        existing_type = result.get("type").split(',')
 
         vaccination_date_str = pet_data.get('vaccination_date')
+        formatted_vaccination_date = None
         if vaccination_date_str:
-            vaccination_date = datetime.strptime(vaccination_date_str, '%a, %d %b %Y %H:%M:%S %Z')
-            formatted_vaccination_date = vaccination_date.strftime('%Y-%m-%d')
+            try:
+                vaccination_date = datetime.strptime(vaccination_date_str, '%a, %d %b %Y %H:%M:%S %Z')
+                formatted_vaccination_date = vaccination_date.strftime('%Y-%m-%d')
+            except ValueError as e:
+
+        # Handle the 'type' field
+        pet_type = pet_data.get('type')
+        if isinstance(pet_type, list):
+            new_type = ','.join(str(t) for t in pet_type)
+        elif isinstance(pet_type, str):
+            new_type = pet_type
         else:
-            formatted_vaccination_date = None
+            new_type = str(pet_type)
 
-        # Convert the type field to a comma-separated string
-        new_type = ','.join(pet_data.get('type'))
+        # Handle the 'gender' field
+        gender = pet_data.get('gender')
+        if isinstance(gender, list):
+            new_gender = gender[0] if gender else None
+        else:
+            new_gender = gender
 
-        cursor.execute("""
+        # Prepare update data for Pet_Info
+        update_data = {
+            'name': pet_data.get('name'),
+            'type': new_type,
+            'breed': pet_data.get('breed'),
+            'gender': new_gender,
+            'age_month': pet_data.get('age_month'),
+            'description': pet_data.get('description'),
+            'pet_id': pet_id
+        }
+
+        # Update Pet_Info table
+        update_query = """
             UPDATE Pet_Info
             SET 
-                name = %s,
-                type = %s,
-                breed = %s,
-                gender = %s,
-                age_month = %s,
-                description = %s
-            WHERE pet_id = %s
-        """, (
-            pet_data.get('name'),
-            new_type,
-            pet_data.get('breed'),
-            pet_data.get('gender'),
-            pet_data.get('age_month'),
-            pet_data.get('description'),
-            pet_id
-        ))
+                name = %(name)s,
+                type = %(type)s,
+                breed = %(breed)s,
+                gender = %(gender)s,
+                age_month = %(age_month)s,
+                description = %(description)s
+            WHERE pet_id = %(pet_id)s
+        """
+        cursor.execute(update_query, update_data)
 
-        # Update Pet_Condition table
-        cursor.execute("""
-            UPDATE Pet_Condition
-            SET 
-                weight = %s,
-                vaccination_date = %s,
-                health_condition = %s,
-                sterilisation_status = %s,
-                adoption_fee = %s,
-                previous_owner = %s
-            WHERE pet_condition_id = %s
-        """, (
-            pet_data.get('weight'),
-            formatted_vaccination_date,
-            pet_data.get('health_condition'),
-            pet_data.get('sterilisation_status'),
-            pet_data.get('adoption_fee'),
-            pet_data.get('previous_owner'),
-            pet_condition_id
-        ))
+        condition_update_data = {
+            'weight': pet_data.get('weight'),
+            'health_condition': pet_data.get('health_condition'),
+            'sterilisation_status': pet_data.get('sterilisation_status'),
+            'adoption_fee': pet_data.get('adoption_fee'),
+            'previous_owner': pet_data.get('previous_owner'),
+            'pet_condition_id': pet_condition_id
+        }
 
+        if formatted_vaccination_date is not None:
+            condition_update_data['vaccination_date'] = formatted_vaccination_date
+
+        condition_update_query = "UPDATE Pet_Condition SET "
+        condition_update_query += ", ".join([f"{key} = %({key})s" for key in condition_update_data if key != 'pet_condition_id'])
+        condition_update_query += " WHERE pet_condition_id = %(pet_condition_id)s"
+
+        cursor.execute(condition_update_query, condition_update_data)
         connection.commit()
-
         return jsonify({"message": "Pet updated successfully"}), 200
 
-    except Error as e:
+    except Exception as e:
         connection.rollback()
+        print(f"Error in admin_edit_pet: {str(e)}")
         return jsonify({"error": str(e)}), 500
     finally:
         if connection.is_connected():
             cursor.close()
             connection.close()
+        print("Database connection closed")
 
 
 @app.route('/api/v1/admin/addPet', methods=['POST'])
