@@ -641,6 +641,7 @@ def admin_edit_pet():
         cursor = connection.cursor(dictionary=True)
         cursor.execute("SELECT role FROM Users WHERE user_id = %s", (user_id,))
         user_role = cursor.fetchone()
+        print(f"User role: {user_role}")
 
         if not user_role or user_role.get("role") != "admin":
             return jsonify({"error": "Invalid Permissions"}), 400
@@ -660,6 +661,7 @@ def admin_edit_pet():
                 vaccination_date = datetime.strptime(vaccination_date_str, '%a, %d %b %Y %H:%M:%S %Z')
                 formatted_vaccination_date = vaccination_date.strftime('%Y-%m-%d')
             except ValueError as e:
+                print(f"Error parsing vaccination date: {e}")
 
         # Handle the 'type' field
         pet_type = pet_data.get('type')
