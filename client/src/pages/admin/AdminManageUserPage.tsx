@@ -17,6 +17,8 @@ function AdminManageUserPage() {
 
     const {user_id} = useParams<{ user_id: string }>();
 
+    const navigate = useNavigate();
+
     useEffect(() => {
         fetchUserDetails();
     }, [user_id]);
@@ -100,7 +102,7 @@ function AdminManageUserPage() {
                 }
 
                 setUpdateMessage('User deleted successfully');
-                na
+                navigate("/admin/manage-users")
             } catch (err) {
                 setError('Error deleting user');
                 console.error('Error:', err);

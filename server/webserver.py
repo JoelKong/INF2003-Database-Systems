@@ -890,9 +890,11 @@ def admin_add_user():
         if not user_role or user_role.get("role") != "admin":
             return jsonify({"error": "Invalid Permissions"}), 403
 
+        hashed_password = generate_password_hash(password)
+
         cursor.execute(
             "INSERT INTO Users (username, password, role) VALUES (%s, %s, %s)",
-            (username, password, role)
+            (username, hashed_password, role)
         )
         connection.commit()
 
