@@ -772,8 +772,8 @@ def admin_add_pet():
         pet_condition_id = cursor.fetchone().get('LAST_INSERT_ID()')
 
         query_pets_info = """
-        INSERT INTO Pet_Info (name, type, breed, gender, age_month, description, image, pet_condition_id)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
+        INSERT INTO Pet_Info (name, type, breed, gender, age_month, description, image, adoption_status, pet_condition_id)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, 'Available', %s);
         """
         cursor.execute(query_pets_info, (
             pet_data.get('name'), pet_data.get('type'), pet_data.get('breed'), pet_data.get('gender'),
