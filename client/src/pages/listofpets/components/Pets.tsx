@@ -1,5 +1,5 @@
-import {IoMdArrowDropdown} from "react-icons/io";
-import {useState, useEffect} from "react";
+import { IoMdArrowDropdown } from "react-icons/io";
+import { useState, useEffect } from "react";
 import PetCard from "./PetCard";
 import Loader from "../../general/Loader.tsx";
 
@@ -22,7 +22,7 @@ export default function Pets(): JSX.Element {
   const [loading, setLoading] = useState(true);
 
   function changeSearchType(type: string) {
-    setSearchedValue({...searchedValue, value: "", type: type});
+    setSearchedValue({ ...searchedValue, value: "", type: type });
     setToggleSearchType(false);
   }
 
@@ -42,7 +42,7 @@ export default function Pets(): JSX.Element {
   async function getFavourites() {
     setLoading(true);
     try {
-      const userSession: any = sessionStorage.getItem("user")
+      const userSession: any = sessionStorage.getItem("user");
       const user: any = JSON.parse(userSession);
       const response = await fetch(
         `http://127.0.0.1:5000/api/v1/getFavourites?user_id=${user.user_id}`,
@@ -65,7 +65,7 @@ export default function Pets(): JSX.Element {
   async function getReservedPets() {
     setLoading(true);
     try {
-      const userSession: any = sessionStorage.getItem("user")
+      const userSession: any = sessionStorage.getItem("user");
       const user: any = JSON.parse(userSession);
       const response = await fetch(
         `http://127.0.0.1:5000/api/v1/getReservedPets`,
@@ -84,7 +84,6 @@ export default function Pets(): JSX.Element {
       setLoading(false);
     }
   }
-
 
   async function filterPets(e: any) {
     e.preventDefault();
@@ -118,7 +117,7 @@ export default function Pets(): JSX.Element {
 
   return (
     <section className="w-screen h-screen flex justify-center items-center text-gray-700">
-      {loading && <Loader message="Fetching pets..."/>}
+      {loading && <Loader message="Fetching pets..." />}
 
       {togglePetConditions.toggle && (
         <section className="w-screen h-screen fixed flex justify-center items-center backdrop-blur-sm z-50">
@@ -130,12 +129,11 @@ export default function Pets(): JSX.Element {
                 alt={togglePetConditions.data.name}
               />
             </div>
-            <div
-              className="flex flex-col h-3/6 justify-evenly p-4 tracking-wide overflow-y-auto overflow-x-hidden break-words">
+            <div className="flex flex-col h-3/6 justify-evenly p-4 tracking-wide overflow-y-auto overflow-x-hidden break-words">
               <button
                 className="bg-blue-500 text-white px-4 py-2 rounded-lg transition ease-in-out hover:scale-110 hover:bg-indigo-500 duration-300"
                 onClick={() =>
-                  setTogglePetConditions({toggle: false, data: {}})
+                  setTogglePetConditions({ toggle: false, data: {} })
                 }
               >
                 Back
@@ -184,7 +182,7 @@ export default function Pets(): JSX.Element {
                 placeholder={`Search for ${searchedValue.type}`}
                 value={searchedValue.value}
                 onChange={(e: any) => {
-                  setSearchedValue({...searchedValue, value: e.target.value});
+                  setSearchedValue({ ...searchedValue, value: e.target.value });
                 }}
               />
 
@@ -192,7 +190,7 @@ export default function Pets(): JSX.Element {
               <select
                 value={searchedValue.gender}
                 onChange={(e) =>
-                  setSearchedValue({...searchedValue, gender: e.target.value})
+                  setSearchedValue({ ...searchedValue, gender: e.target.value })
                 }
                 className="p-2 rounded-lg mr-2"
               >
@@ -246,11 +244,10 @@ export default function Pets(): JSX.Element {
                 setToggleSearchType(!toggleSearchType);
               }}
             >
-              <IoMdArrowDropdown/>
+              <IoMdArrowDropdown />
             </button>
             {toggleSearchType && (
-              <div
-                className="absolute top-full w-full bg-white border-gray-600 border-2 mt-[0.01rem] rounded-br-md rounded-bl-md">
+              <div className="absolute top-full w-full bg-white border-gray-600 border-2 mt-[0.01rem] rounded-br-md rounded-bl-md">
                 <button
                   className="p-2 w-full border-b-2 text-left tracking-widest"
                   onClick={() => {
