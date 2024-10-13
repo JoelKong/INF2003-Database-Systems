@@ -40,7 +40,6 @@ export default function RegisterPage(): JSX.Element {
     }
   }
 
-
   return (
     <div className="w-screen h-screen">
       <NavBar/>
