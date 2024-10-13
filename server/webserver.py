@@ -6,10 +6,10 @@ from dotenv import load_dotenv
 from datetime import datetime, date
 import os
 
-# Load ur environment variables
-load_dotenv()
+# load ur env variables
+load_dotenv() 
 
-# Set up CORS for flask and react
+# CORS for flask and react
 app = Flask(__name__)
 CORS(app, origins=["http://localhost:5173"], supports_credentials=True)
 app.secret_key = "inf2002dbprojectpartone"
@@ -140,7 +140,6 @@ def get_Top3():
         cursor.execute(query)
         top3pets = cursor.fetchall()
 
-        # Convert sets to lists
         for pet in top3pets:
             if isinstance(pet.get('type'), set):
                 pet['type'] = list(pet['type'])
@@ -174,25 +173,18 @@ def get_all_pets():
         """
         cursor.execute(query)
         pets = cursor.fetchall()
-
-        # check and process each pet's data
         for pet in pets:
-            # convert sets (if any) into lists as type and gender might be in sets
             if isinstance(pet.get('type'), set):
                 pet['type'] = list(pet['type'])
             if isinstance(pet.get('gender'), set):
                 pet['gender'] = list(pet['gender'])
-
-            # convert datetime objects to strings
             try:
                 if isinstance(pet.get('vaccination_date'), datetime.date):
                     pet['vaccination_date'] = pet['vaccination_date'].strftime('%Y-%m-%d')
             except (TypeError, AttributeError):
-                # handle the case where the vaccination_date field has an unexpected data type
                 pet['vaccination_date'] = None
-
         return jsonify(pets), 200
-
+    
     except Error as e:
         return jsonify({"error": str(e)}), 500
 
@@ -212,36 +204,28 @@ def filter_pets():
     health_condition = data.get('health_condition')
     sterilisation_status = data.get('sterilisation_status')
 
-    # Start building the query
     query = """
     SELECT Pet_Info.*, Pet_Condition.*
     FROM Pet_Info
     JOIN Pet_Condition ON Pet_Info.pet_condition_id = Pet_Condition.pet_condition_id
     WHERE 1=1  -- Placeholder to allow dynamic conditions
     """
-
     params = []
 
-    # Apply filters if they are provided
-
-    # Filter by a generic type (name, breed, etc.)
     if filter_type and filter_value:
         query += f" AND Pet_Info.{filter_type} LIKE %s"
-        params.append(f"%{filter_value}%")  # Use LIKE for partial matches
+        params.append(f"%{filter_value}%")  
 
-    # Filter by gender
     if gender:
         query += " AND Pet_Info.gender = %s"
         params.append(gender)
 
-    # Filter by health condition
     if health_condition:
         query += " AND Pet_Condition.health_condition = %s"
         params.append(health_condition)
 
-    # Filter by sterilisation status (0 or 1)
     if sterilisation_status is not None and sterilisation_status in ["0",
-                                                                     "1"]:  # Check explicitly for None, as 0 and 1 are valid
+                                                                     "1"]:
         query += " AND Pet_Condition.sterilisation_status = %s"
         params.append(sterilisation_status)
 
@@ -251,12 +235,9 @@ def filter_pets():
 
     try:
         cursor = connection.cursor(dictionary=True)
-
-        # Execute the dynamically built query
         cursor.execute(query, params)
         pets = cursor.fetchall()
 
-        # Convert sets to lists
         for pet in pets:
             if isinstance(pet.get('type'), set):
                 pet['type'] = list(pet['type'])
@@ -290,13 +271,9 @@ def addFavourite():
 
     try:
         cursor = connection.cursor()
-
-        # check if the pet is already in the Users's favourites
         cursor.execute("SELECT * FROM Favourites WHERE user_id = %s AND pet_id = %s", (user_id, pet_id))
         if cursor.fetchone():
             return jsonify({"error": "Pet is already in favourites"}), 400
-
-        # insert the favourite pet into the Favourites table
         cursor.execute(
             "INSERT INTO Favourites (user_id, pet_id) VALUES (%s, %s)",
             (user_id, pet_id)
@@ -363,7 +340,6 @@ def getFavourites():
         cursor.execute(query, (user_id,))
         favourited_pets = cursor.fetchall()
 
-        # Convert sets to lists
         for pet in favourited_pets:
             if isinstance(pet.get('type'), set):
                 pet['type'] = list(pet['type'])
@@ -392,7 +368,7 @@ def addToCart():
     pet_id = data.get('pet_id')
 
     if not user_id:
-        return jsonify({"error": "User not logged in"}), 401  # User not logged in
+        return jsonify({"error": "User not logged in"}), 401 
 
     connection = get_db_connection()
     if connection is None:
@@ -472,8 +448,6 @@ def removeFromCart():
 
     try:
         cursor = connection.cursor()
-
-        # Delete the pet from the cart
         cursor.execute("""
             DELETE FROM Cart 
             WHERE user_id = %s AND pet_id = %s
@@ -509,7 +483,6 @@ def confirmReservation():
         cursor = connection.cursor()
 
         for item in cart:
-            # cart_id = item.get('cart_id')
             pet_id = item.get('pet_id')
             submission_date = datetime.now().date().isoformat()
             status = 'pending'
@@ -520,8 +493,6 @@ def confirmReservation():
             )
 
         connection.commit()
-
-        # Delete all pets from the cart
         cursor.execute("""
             DELETE FROM Cart 
             WHERE user_id = %s
@@ -544,8 +515,6 @@ def confirmReservation():
 --- Admin Endpoints ---
 """
 
-
-# Admin Registration (TO BE REMOVED)
 @app.route('/api/v1/admin/register', methods=['POST'])
 def admin_register():
     data = request.json
@@ -663,7 +632,6 @@ def admin_edit_pet():
             except ValueError as e:
                 print(f"Error parsing vaccination date: {e}")
 
-        # Handle the 'type' field
         pet_type = pet_data.get('type')
         if isinstance(pet_type, list):
             new_type = ','.join(str(t) for t in pet_type)
@@ -672,14 +640,12 @@ def admin_edit_pet():
         else:
             new_type = str(pet_type)
 
-        # Handle the 'gender' field
         gender = pet_data.get('gender')
         if isinstance(gender, list):
             new_gender = gender[0] if gender else None
         else:
             new_gender = gender
 
-        # Prepare update data for Pet_Info
         update_data = {
             'name': pet_data.get('name'),
             'type': new_type,
@@ -690,7 +656,6 @@ def admin_edit_pet():
             'pet_id': pet_id
         }
 
-        # Update Pet_Info table
         update_query = """
             UPDATE Pet_Info
             SET 
@@ -737,24 +702,6 @@ def admin_edit_pet():
 
 @app.route('/api/v1/admin/addPet', methods=['POST'])
 def admin_add_pet():
-    """
-    Adds a new pet to the database.
-
-    This endpoint accepts a JSON payload with the following fields:
-    - name: 
-    - type: 
-    - breed: 
-    - gender: 
-    - age_month: 
-    - description: 
-    - image: 
-    - weight: 
-    - vaccination_date: 
-    - health_condition: 
-    - sterilisation_status: 
-    - adoption_fee: 
-    - previous_owner: 
-    """
     data = request.json
     pet_data = data.get('pet_data')
     user_id = data.get('user_id')
@@ -1161,7 +1108,6 @@ def update_application_status(application_id):
         if not admin_role or admin_role.get("role") != "admin":
             return jsonify({"error": "Invalid Permissions"}), 403
 
-        # update the application status
         update_query = """
         UPDATE Applications 
         SET status = %s 
@@ -1246,13 +1192,12 @@ def admin_get_adoptions():
         cursor.execute(query)
         adoptions = cursor.fetchall()
 
-        # convert date objects to strings for JSON serialization
         for adoption in adoptions:
             for key, value in adoption.items():
                 if isinstance(value, (datetime, date)):
                     adoption[key] = value.isoformat()
                 elif isinstance(value, set):
-                    adoption[key] = list(value)  # Convert set to list
+                    adoption[key] = list(value) 
                 elif not isinstance(value, (str, int, float, bool, type(None))):
                     adoption[key] = str(value)
 
