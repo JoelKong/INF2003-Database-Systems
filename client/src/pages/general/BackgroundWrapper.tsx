@@ -1,7 +1,6 @@
 import {useLocation} from "react-router-dom";
 
 function BackgroundWrapper({ children }) {
-  // removes the background for admin page. i find the background ugly paiseh - dinie
   const location = useLocation();
   const isAdminPage = location.pathname.startsWith('/admin') || location.pathname === '/adminregister';
 
