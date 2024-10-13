@@ -1,6 +1,6 @@
 import React, {useState} from "react";
 
-// TODO - PAGE TO BE REMOVED BEFORE SUBMITTING. SHOULDN'T BE ABLE TO ADD AN ADMIN USER FROM HERE
+
 function AdminRegisterPage() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
